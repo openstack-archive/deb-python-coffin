@@ -17,6 +17,7 @@ __docformat__ = 'restructuredtext en'
 from jinja2 import Environment, loaders
 from django.template import Context as DjangoContext
 from django.conf import settings
+from django.http import HttpResponse
 
 
 def make_app_loader():
@@ -49,18 +50,27 @@ for loader in settings.TEMPLATE_LOADERS:
 _ENV = Environment(loader=loaders.ChoiceLoader(_LOADERS))
 
 
-def render_to_response(template_name, dictionary=None, context_instance=None):
+def dict_from_django_context(context):
+    dict_ = {}
+    # Newest dicts are up front, so update from oldest to newest.
+    for subcontext in reversed(list(context)):
+        dict_.update(subcontext)
+    return dict_
+
+
+def render_to_response(template_name, dictionary=None, context_instance=None,
+                       mimetype=None):
     """
     :param template_name: Filename of the template to get or a sequence of
         filenames to try, in order.
     :param dictionary: Rendering context for the template.
     :returns: A response object with the evaluated template as a payload.
     """
-    httpresponse_kwargs = {MIMETYPE_KEY: kwargs.pop(MIMETYPE_KEY, None)}
     template = _ENV.get_template(template_name)
+    if isinstance(dictionary, DjangoContext):
+        dictionary = dict_from_django_context(dictionary)
+    assert isinstance(dictionary, dict) # Required for **-operator.
     if context_instance:
-        context_instance.update(dictionary)
-    else:
-        context_instance = DjangoContext(dictionary)
-    rendered = template.render(**context_instance)
-    return HttpResponse(rendered, **httpreponse_kwargs)
+        dictionary.update(dict_from_django_context(context_instance))
+    rendered = template.render(**dictionary)
+    return HttpResponse(rendered, mimetype=mimetype)
