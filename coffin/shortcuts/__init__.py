@@ -14,6 +14,7 @@ def render_to_response(template_name, dictionary=None, context_instance=None,
     :returns: A response object with the evaluated template as a payload.
     """
     template = get_env().get_template(template_name)
+    dictionary = dictionary or {}
     if isinstance(dictionary, DjangoContext):
         dictionary = dict_from_django_context(dictionary)
     assert isinstance(dictionary, dict) # Required for **-operator.

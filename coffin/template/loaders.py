@@ -23,7 +23,16 @@ def _make_jinja_app_loader():
     return loaders.FileSystemLoader(app_template_dirs)
 
 
+def _make_jinja_filesystem_loader():
+    """Makes a 'filesystem loader' for Jinja which acts like
+    :mod:`django.template.loaders.filesystem`.
+    """
+    from django.conf import settings
+    return loaders.FileSystemLoader(settings.TEMPLATE_DIRS)
+
+
 # Determine loaders from Django's conf.
 _JINJA_LOADER_BY_DJANGO_SUBSTR = { # {substr: callable, ...}
     'app_directories': _make_jinja_app_loader,
+    'filesystem': _make_jinja_filesystem_loader,
 }

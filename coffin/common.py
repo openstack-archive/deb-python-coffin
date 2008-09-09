@@ -1,3 +1,5 @@
+import warnings
+
 from jinja2 import Environment, loaders
 
 from coffin.template.loaders import jinja_loader_from_django_loader
@@ -25,6 +27,8 @@ def _get_loaders():
             loader_obj = jinja_loader_from_django_loader(loader)
             if loader_obj:
                 _LOADERS.append(loader_obj)
+            else:
+                warnings.warn('Cannot translate loader: %s' % loader)
         else: # It's assumed to be a Jinja2 loader instance.
             _LOADERS.append(loader)
     return _LOADERS
