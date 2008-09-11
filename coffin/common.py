@@ -34,6 +34,19 @@ def _get_loaders():
     return _LOADERS
 
 
+def _get_filters():
+    """Provides universally used filters; i.e. the `url` function
+    that ties into Django's URLConf.
+
+    :return: A mapping of names to filters.
+    """
+    def url(view_name, *args, **kwargs):
+        from django.core.urlresolvers import reverse, NoReverseMatch
+        url = reverse(view_name, args=args, kwargs=kwargs)
+        return url
+    return locals()
+
+
 def get_env():
     """
     :return: A Jinja2 environment singleton.
@@ -42,6 +55,7 @@ def get_env():
     if not _ENV:
         loaders_ = _get_loaders()
         _ENV = Environment(loader=loaders.ChoiceLoader(loaders_))
+        _ENV.filters.update(_get_filters())
     return _ENV
 
 
