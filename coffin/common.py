@@ -10,6 +10,7 @@ __all__ = ('get_env', 'dict_from_django_context')
 
 _ENV = None
 _LOADERS = [] # See :fun:`_infer_loaders`.
+_JINJA_I18N_EXTENSION_NAME = 'jinja2.ext.i18n'
 
 
 def _get_loaders():
@@ -47,6 +48,14 @@ def _get_filters():
     return locals()
 
 
+def _get_extensions():
+    extensions = []
+    from django.conf import settings
+    if settings.USE_I18N:
+        extensions.append(_JINJA_I18N_EXTENSION_NAME)
+    return extensions
+
+
 def get_env():
     """
     :return: A Jinja2 environment singleton.
@@ -54,7 +63,10 @@ def get_env():
     global _ENV
     if not _ENV:
         loaders_ = _get_loaders()
-        _ENV = Environment(loader=loaders.ChoiceLoader(loaders_))
+        _ENV = Environment(
+            loader=loaders.ChoiceLoader(loaders_),
+            extensions=_get_extensions()
+        )
         _ENV.filters.update(_get_filters())
     return _ENV
 

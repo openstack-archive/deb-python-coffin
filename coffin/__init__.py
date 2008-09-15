@@ -13,6 +13,7 @@ reasonable.
 """
 
 
+__all__ = ('__version__', '__docformat__', 'get_revision')
 __version__ = (0, 0)
 __docformat__ = 'restructuredtext en'
 
