@@ -36,15 +36,42 @@ def _get_loaders():
 
 
 def _get_filters():
-    """Provides universally used filters; i.e. the `url` function
+    """Provides universally used filters; e.g. the `url` function
     that ties into Django's URLConf.
 
     :return: A mapping of names to filters.
+
+    # TODO: Most of those need to updated for autoescaping
     """
     def url(view_name, *args, **kwargs):
         from django.core.urlresolvers import reverse, NoReverseMatch
         url = reverse(view_name, args=args, kwargs=kwargs)
         return url
+
+    def timesince(value, arg=None):
+        from django.utils.timesince import timesince
+        if arg:
+            return timesince(value, arg)
+        return timesince(value)
+
+    def timeuntil(value, arg=None):
+        from django.utils.timesince import timeuntil
+        return timeuntil(date, arg)
+
+    def date(value, arg=None):
+        from django.conf import settings
+        from django.utils.dateformat import format
+        if arg is None:
+            arg = settings.DATE_FORMAT
+        return format(value, arg)
+
+    def time(value, arg=None):
+        from django.conf import settings
+        from django.utils.dateformat import time_format
+        if arg is None:
+            arg = settings.TIME_FORMAT
+        return time_format(value, arg)
+
     return locals()
 
 
