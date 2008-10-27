@@ -92,10 +92,10 @@ def _get_filters():
 
 
 def _get_extensions():
-    extensions = []
     from django.conf import settings
+    extensions = list(getattr(settings, 'JINJA2_EXTENSIONS', []))
     if settings.USE_I18N:
-        extensions.append(_JINJA_I18N_EXTENSION_NAME)
+        extensions.append(_JINJA_I18N_EXTENSION_NAME)      
     return extensions
 
 
@@ -108,7 +108,8 @@ def get_env():
         loaders_ = _get_loaders()
         _ENV = Environment(
             loader=loaders.ChoiceLoader(loaders_),
-            extensions=_get_extensions()
+            extensions=_get_extensions(),
+            autoescape=True
         )
         _ENV.filters.update(_get_filters())
     return _ENV
