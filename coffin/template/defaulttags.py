@@ -19,4 +19,4 @@ class LoadExtension(Extension):
         while not parser.stream.current.type == 'block_end':
             parser.stream.next()
 
-        return nodes.Output('')
+        return nodes.Const('')

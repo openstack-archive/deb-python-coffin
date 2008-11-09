@@ -6,6 +6,6 @@ def test_load():
     env = Environment(extensions=[LoadExtension])
 
     # the load tag is a no-op
-    env.from_string('a{% load %}c').render() == 'ab'
-    env.from_string('a{% load news.photos %}b').render() == 'ab'
-    env.from_string('a{% load "news.photos" %}b').render() == 'ab'
+    assert env.from_string('a{% load %}b').render() == 'ab'
+    assert env.from_string('a{% load news.photos %}b').render() == 'ab'
+    assert env.from_string('a{% load "news.photos" %}b').render() == 'ab'
