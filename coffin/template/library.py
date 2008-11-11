@@ -139,14 +139,15 @@ class Library(DjangoLibrary):
             self.jinja2_filters[name] = func
             return func
 
-        django_func = jinja2_to_django_interop(func)
         # Jinja supports a similar machanism to Django's
         # ``needs_autoescape`` filters (environment filters). We can
         # thus support Django filters that use it in Jinja with just
         # a little bit of parameter rewriting.
         if not hasattr(func, 'needs_autoescape'):
+            django_func = jinja2_to_django_interop(func)
             jinja2_func = django_to_jinja2_interop(func)
         else:
+            django_func = func     # we know now it was written for Django
             @environmentfilter
             def jinja2_func(environment, *args, **kwargs):
                 kwargs['autoescape'] = environment.autoescape

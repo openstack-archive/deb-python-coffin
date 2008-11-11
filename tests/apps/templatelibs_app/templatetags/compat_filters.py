@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe, mark_for_escaping
 
 
 def needing_autoescape(value, autoescape=None):
-    return str(bool(autoescape))
+    return str(autoescape)
 needing_autoescape.needs_autoescape = True
 
 

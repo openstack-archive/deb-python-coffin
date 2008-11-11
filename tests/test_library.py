@@ -95,4 +95,7 @@ def test_filter_compat_other():
     env.autoescape = False
     assert env.from_string('{{ "b"|needing_autoescape }}').render() == 'False'
 
+    # [bug] @needs_autoescape also (still) works correctly in Django
+    assert Template('{% load compat_filters %}{{ "b"|needing_autoescape }}').render(Context()) == 'True'
+
     # TODO: test @stringfilter
