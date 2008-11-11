@@ -21,9 +21,11 @@ General notes:
     defers it to the template engine).
 """
 
+import inspect
 from django.template import Library as DjangoLibrary, InvalidTemplateLibrary
 from django.utils.safestring import SafeUnicode, SafeData, EscapeData
-from jinja2 import Markup
+from jinja2 import Markup, environmentfilter
+from jinja2.ext import Extension as Jinja2Extension
 
 
 __all__ = ('Library',)
@@ -69,7 +71,7 @@ class Library(DjangoLibrary):
     def __init__(self):
         super(Library, self).__init__()
         self.jinja2_filters = {}
-        self.jinja2_tags = []
+        self.jinja2_extensions = []
 
     def tag(self, name_or_node=None, compile_function=None):
         """Register a Django template tag (1) or Jinja 2 extension (2).
@@ -86,14 +88,14 @@ class Library(DjangoLibrary):
         if isinstance(name_or_node, Jinja2Extension):
             if compile_function:
                 raise InvalidTemplateLibrary('"compile_function" argument not supported for Jinja2 extensions')
-            self.jinja2_tags.append(name_or_node)
+            self.jinja2_extensions.append(name_or_node)
             return name_or_node
         else:
             return super(Library, self).tag(name_or_node, compile_function)
 
     def tag_function(self, func_or_node):
-        if isinstance(func_or_node, Jinja2Extension):
-            self.jinja2_tags.append(func_or_node)
+        if issubclass(func_or_node, Jinja2Extension):
+            self.jinja2_extensions.append(func_or_node)
             return func_or_node
         else:
             return super(Library, self).tag_function(func_or_node)
@@ -132,8 +134,8 @@ class Library(DjangoLibrary):
 
         # if there are more than two mandatory arguments, we know we
         # have a jinja filter that is not supported by Django
-        args = getargspec(func)
-        if len(args[0]) - len(args[3]) > 2:
+        args = inspect.getargspec(func)
+        if len(args[0]) - (len(args[3]) if args[3] else 0) > 2:
             self.jinja2_filters[name] = func
             return func
 
@@ -148,7 +150,7 @@ class Library(DjangoLibrary):
             @environmentfilter
             def jinja2_func(environment, *args, **kwargs):
                 kwargs['autoescape'] = environment.autoescape
-                return django_to_jinja2_interop(*args, **kwargs)
+                return django_to_jinja2_interop(func)(*args, **kwargs)
         # TODO: Django's "func.is_safe" is not yet handled
 
         # register with all engines
@@ -166,20 +168,20 @@ def django_to_jinja2_interop(filter_func):
             return Markup.escape(v)       # not 100% equivalent, see mod docs
         return v
     def wrapped(*args, **kwargs):
-        for i in range(0, len(args)):
-            args[i] = _convert(args[i])
         result = filter_func(*args, **kwargs)
         return _convert(result)
     return wrapped
 
 def jinja2_to_django_interop(filter_func):
     def _convert(v):
-        if isinstance(v, Markup):
-            return SafeUnicode(v)         # jinja is always unicode
+        # TODO: for now, this is not even necessary: Markup strings have
+        # a custom replace() method that is immume to Django's escape()
+        # attempts.
+        #if isinstance(v, Markup):
+        #    return SafeUnicode(v)         # jinja is always unicode
+        # ... Jinja does not have an EscapeData equivalent
         return v
-    def wrapped(*args, **kwargs):
-        for i in range(0, len(args)):
-            args[i] = _convert(args[i])
-        result = filter_func(*args, **kwargs)
+    def wrapped(value, *args, **kwargs):
+        result = filter_func(value, *args, **kwargs)
         return _convert(result)
     return wrapped
