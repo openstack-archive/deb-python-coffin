@@ -1,18 +1,23 @@
 import os
 import warnings
 
+from django import dispatch
 from jinja2 import Environment, loaders
 
 from coffin.template.loaders import jinja_loader_from_django_loader
 
 
-__all__ = ('get_env', 'dict_from_django_context')
+__all__ = ('get_env', 'dict_from_django_context', 'need_env')
 
 
 _ENV = None
 _LOADERS = [] # See :fun:`_infer_loaders`.
 _TEMPLATE_LIBS = []
 _JINJA_I18N_EXTENSION_NAME = 'jinja2.ext.i18n'
+
+
+need_env = dispatch.Signal(providing_args=['arguments', 'loaders',
+                                           'filters', 'extensions'])
 
 
 def _get_loaders():
@@ -159,12 +164,24 @@ def get_env():
     global _ENV
     if not _ENV:
         loaders_ = _get_loaders()
-        _ENV = Environment(
-            loader=loaders.ChoiceLoader(loaders_),
-            extensions=_get_extensions(),
-            autoescape=True
-        )
-        _ENV.filters.update(_get_filters())
+        filters = _get_filters()
+        extensions = _get_extensions()
+        arguments = {
+            'autoescape': True
+        }
+
+        need_env.send(sender=Environment, arguments=arguments,
+                      loaders=loaders_, extensions=extensions,
+                      filters=filters)
+
+        if not _ENV:
+            if not 'loader' in arguments:
+                arguments['loader'] = loaders.ChoiceLoader(loaders_)
+            if not 'extensions' in arguments:
+                arguments['extensions'] = extensions
+
+            _ENV = Environment(**arguments)
+            _ENV.filters.update(filters)
     return _ENV
 
 
