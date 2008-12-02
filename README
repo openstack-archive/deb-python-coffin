@@ -11,6 +11,18 @@ This will render ``template.html`` using Jinja2, and returns a
 ``HttpResponse``.
 
 
+== 404 and 500 handlers ==
+
+To have your HTTP 404 and 500 template rendered using Jinja, replace the
+line
+
+    from django.conf.urls.defaults import *
+
+in your ``urls.py`` (it should be there by default), with
+
+    from coffin.conf.urls.defaults import *
+
+
 == Custom filters and extensions ==
 
 Coffin uses the same templatetag library approach as Django, meaning
