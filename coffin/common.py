@@ -82,11 +82,10 @@ def _get_filters():
     :return: A mapping of names to filters.
     """
     def get_django():
-        # TODO: Most of those need to updated for autoescaping
+        # TODO: Most of those need to be updated for autoescaping
         def url(view_name, *args, **kwargs):
-            from django.core.urlresolvers import reverse, NoReverseMatch
-            url = reverse(view_name, args=args, kwargs=kwargs)
-            return url
+            from coffin.template.defaulttags import url
+            return url._reverse(view_name, args, kwargs)
 
         def timesince(value, arg=None):
             from django.utils.timesince import timesince
@@ -130,7 +129,7 @@ def _get_filters():
             value = callable(value) and value or get_callable(value)
             filters[value.__name__] = value
 
-    # add filters defined in application's templatetag librarie
+    # add filters defined in application's templatetag libraries
     for lib in _get_templatelibs():
         if hasattr(lib, 'jinja2_filters'):
             filters.update(lib.jinja2_filters)
@@ -142,7 +141,9 @@ def _get_extensions():
     from django.conf import settings
 
     # start with our default builtins
-    extensions = ['coffin.template.defaulttags.LoadExtension']
+    extensions = ['coffin.template.defaulttags.LoadExtension',
+                  'coffin.template.defaulttags.URLExtension'
+                  ]
     if settings.USE_I18N:
         extensions.append(_JINJA_I18N_EXTENSION_NAME)
 
