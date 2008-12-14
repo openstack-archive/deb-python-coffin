@@ -1,5 +1,17 @@
 = Coffin: Jinja2 adapter for Django =
 
+== Supported Django Functionality ==
+
+Coffin currently makes the following Django tags available in Jinja:
+
+    - {% url %} - additionally, a ``"view"|url()`` filter is also 
+      available.
+      
+    - {% load %} - is actually a no-op in Coffin, since templatetag 
+      libraries are always loaded. See also "Custom Filters and extensions".
+
+Django filters that are ported in Coffin: date, time, timesince, timeuntil
+
 == Rendering ==
 
 Simply use the ``render_to_response`` replacement provided by coffin:
