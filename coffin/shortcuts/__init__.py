@@ -14,6 +14,10 @@ def render_template(template_name, dictionary=None, context_instance=None):
     provide some generic way to render a Jinja template using a
     RequestContext though, for instances where a full render_to_response
     is not appropriate (e.g. custom HTTP Response class).
+    Instead, implementing the Django's Template() class on top of Jinja
+    might be the way to go. This would also easily allow rendering
+    templates from strings with the Coffin environment setup, which
+    currently must be done via get_env().
 
     :param template_name: Filename of the template to get or a sequence of
         filenames to try, in order.
