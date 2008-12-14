@@ -13,7 +13,7 @@ def find_packages(root):
 
 setup(
     name='Coffin',
-    version=coffin.__version__,
+    version=".".join(map(str, coffin.__version__)),
     description='Jinja2 adapter for Django',
     author='Christopher D. Leary',
     author_email='cdleary@gmail.com',
