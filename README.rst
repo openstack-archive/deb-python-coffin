@@ -73,6 +73,15 @@ A Jinja2-enabled version of ``add_to_builtins`` can be found in the
 ``django.template`` namespace.
 
 
+== Things not supported by Coffin ==
+
+These is an incomplete list things that Coffin does not yet and possibly
+never will, requiring manual changes on your part:
+
+    * The ``slice`` filter works differently in Jinja2 and Django.
+      Replace it with Jinja's slice syntax: ``x[0:1]``.
+
+
 == Running the tests ==
 
 Use the nose framework:
