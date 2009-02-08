@@ -46,6 +46,9 @@ def test_filters():
     # - when requiring more than one argument
     env.from_string('{{ "b"|multiarg(1,2) }}')
     assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|multiarg }}')
+    # - when requiring more than one argument
+    env.from_string('{{ "b"|jinja_forced }}')
+    assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|jinja_forced }}')
 
 
 def test_filter_compat_safestrings():

@@ -15,9 +15,13 @@ def context(context, value):
 def multiarg(value, arg1, arg2):
     return ""
 
+def jinja_forced(value):
+    return ""
+
 
 from coffin.template import Library
 register = Library()
 register.filter('environment', environment)
 register.filter('context', context)
 register.filter('multiarg', multiarg)
+register.filter('jinja_forced', jinja_forced, jinja2_only=True)

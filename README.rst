@@ -1,13 +1,14 @@
 = Coffin: Jinja2 adapter for Django =
 
-== Supported Django Functionality ==
+
+== Supported Django template functionality ==
 
 Coffin currently makes the following Django tags available in Jinja:
 
-    - {% url %} - additionally, a ``"view"|url()`` filter is also 
+    - {% url %} - additionally, a ``"view"|url()`` filter is also
       available.
-      
-    - {% load %} - is actually a no-op in Coffin, since templatetag 
+
+    - {% load %} - is actually a no-op in Coffin, since templatetag
       libraries are always loaded. See also "Custom Filters and extensions".
 
 Django filters that are ported in Coffin: date, time, timesince, timeuntil
@@ -56,6 +57,15 @@ Example for a Jinja-enabled template library:
     register.filter('plenk', plenk)   # Filter for both Django and Jinja
     register.tag('foo', do_foo)       # Django version of the tag
     register.tag(FooExtension)        # Jinja version of the tag
+
+
+== Other things of note ==
+
+``coffin.template.loader`` is a port of ``django.template.loader`` and
+comes with a Jinja2-enabled version of ``get_template()``.
+
+A Jinja2-enabled version of ``add_to_builtins`` can be found in the
+``django.template`` namespace.
 
 
 == Running the tests ==

@@ -1,6 +1,7 @@
 ﻿from jinja2 import nodes
 from jinja2.ext import Extension
 from jinja2.exceptions import TemplateSyntaxError
+from coffin.template import Library
 
 from django.conf import settings
 
@@ -130,3 +131,8 @@ class URLExtension(Extension):
 # nicer import names
 load = LoadExtension
 url = URLExtension
+
+
+register = Library()
+register.tag(load)
+register.tag(url)

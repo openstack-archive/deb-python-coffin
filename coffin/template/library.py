@@ -100,9 +100,10 @@ class Library(DjangoLibrary):
         else:
             return super(Library, self).tag_function(func_or_node)
 
-    def filter(self, name=None, filter_func=None):
+    def filter(self, name=None, filter_func=None, jinja2_only=False):
         """Register a filter with both the Django and Jinja2 template
-        engines, if possible.
+        engines, if possible (or only Jinja2, if ``jinja2_only`` is
+        specified).
 
         Implements a compatibility layer to handle the different
         auto-escaping approaches transparently. Extended Jinja2 filter
@@ -113,18 +114,31 @@ class Library(DjangoLibrary):
         Supports the same invocation syntax as the original Django
         version, including use as a decorator.
         """
-        if name != None and filter_func != None:
-            # the only case were the super() version will NOT end up
-            # calling ``self.filter_function``, so handle this separately
-            return self._register_filter(name, filter_func)
+        def filter_function(f):
+            return self._register_filter(
+                getattr(f, "_decorated_function", f).__name__,
+                f, jinja2_only=jinja2_only)
+        if name == None and filter_func == None:
+            # @register.filter()
+            return filter_function
+        elif filter_func == None:
+            if (callable(name)):
+                # @register.filter
+                return self.filter_function(name)
+            else:
+                # @register.filter('somename') or @register.filter(name='somename')
+                def dec(func):
+                    return self.filter(name, func, jinja2_only=jinja2_only)
+                return dec
+        elif name != None and filter_func != None:
+            # register.filter('somename', somefunc)
+            return self._register_filter(name, filter_func,
+                jinja2_only=jinja2_only)
         else:
-            return super(Library, self).filter(name, filter_func)
+            raise InvalidTemplateLibrary("Unsupported arguments to "
+                "Library.filter: (%r, %r)", (name, filter_func))
 
-    def filter_function(self, func):
-        return self._register_filter(
-            getattr(func, "_decorated_function", func).__name__, func)
-
-    def _register_filter(self, name, func):
+    def _register_filter(self, name, func, jinja2_only=None):
         # with those attributes, we know we have a jinja filter we
         # cannot port to Django
         if hasattr(func, 'contextfilter') or \
@@ -155,7 +169,8 @@ class Library(DjangoLibrary):
         # TODO: Django's "func.is_safe" is not yet handled
 
         # register with all engines
-        self.filters[name] = django_func
+        if not jinja2_only:
+            self.filters[name] = django_func
         self.jinja2_filters[name] = jinja2_func
 
         return (django_func, jinja2_func)

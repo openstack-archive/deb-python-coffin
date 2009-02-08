@@ -81,42 +81,14 @@ def _get_filters():
 
     :return: A mapping of names to filters.
     """
-    def get_django():
-        # TODO: Most of those need to be updated for autoescaping
-        def url(view_name, *args, **kwargs):
-            from coffin.template.defaulttags import url
-            return url._reverse(view_name, args, kwargs)
-
-        def timesince(value, arg=None):
-            from django.utils.timesince import timesince
-            if arg:
-                return timesince(value, arg)
-            return timesince(value)
-
-        def timeuntil(value, arg=None):
-            from django.utils.timesince import timeuntil
-            return timeuntil(date, arg)
-
-        def date(value, arg=None):
-            from django.conf import settings
-            from django.utils.dateformat import format
-            if arg is None:
-                arg = settings.DATE_FORMAT
-            return format(value, arg)
-
-        def time(value, arg=None):
-            from django.conf import settings
-            from django.utils.dateformat import time_format
-            if arg is None:
-                arg = settings.TIME_FORMAT
-            return time_format(value, arg)
-
-        return locals()
-
     from django.conf import settings
+    from coffin.template import builtins
 
+    filters = {}
     # start with our default builtins
-    filters = get_django()
+    for lib in builtins:
+        if hasattr(lib, 'jinja2_filters'):
+            filters.update(lib.jinja2_filters)
 
     # add the globally defined filter list
     user = getattr(settings, 'JINJA2_FILTERS', {})
@@ -139,11 +111,14 @@ def _get_filters():
 
 def _get_extensions():
     from django.conf import settings
+    from coffin.template import builtins
 
+    extensions = []
     # start with our default builtins
-    extensions = ['coffin.template.defaulttags.LoadExtension',
-                  'coffin.template.defaulttags.URLExtension'
-                  ]
+    for lib in builtins:
+        if hasattr(lib, 'jinja2_extensions'):
+            extensions += lib.jinja2_extensions
+
     if settings.USE_I18N:
         extensions.append(_JINJA_I18N_EXTENSION_NAME)
 
