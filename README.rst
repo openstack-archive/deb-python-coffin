@@ -11,6 +11,8 @@ Coffin currently makes the following Django tags available in Jinja:
     - {% load %} - is actually a no-op in Coffin, since templatetag
       libraries are always loaded. See also "Custom Filters and extensions".
 
+    - {% with %}
+
 Django filters that are ported in Coffin: date, time, timesince, timeuntil
 
 == Rendering ==
