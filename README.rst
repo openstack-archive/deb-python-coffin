@@ -15,6 +15,9 @@ Coffin currently makes the following Django tags available in Jinja:
 
 Django filters that are ported in Coffin: date, time, timesince, timeuntil
 
+The template-related functionality of the following contrib modules has
+been ported in Coffin: ``coffin.contrib.markup``.
+
 == Rendering ==
 
 Simply use the ``render_to_response`` replacement provided by coffin:
