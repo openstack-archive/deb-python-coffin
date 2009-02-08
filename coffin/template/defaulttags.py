@@ -128,11 +128,43 @@ class URLExtension(Extension):
         return url
 
 
+class WithExtension(Extension):
+    """Adds a value to the context (inside this block) for caching and
+    easy access, just like the Django-version those.
+
+    For example::
+
+        {% with person.some_sql_method as total %}
+            {{ total }} object{{ total|pluralize }}
+        {% endwith %}
+    """
+
+    tags = set(['with'])
+
+    def parse(self, parser):
+        lineno = parser.stream.next().lineno
+
+        value = parser.parse_expression()
+        parser.stream.expect('name:as')
+        name = parser.stream.expect('name')
+
+        body = parser.parse_statements(['name:endwith'], drop_needle=True)
+        return nodes.CallBlock(
+                self.call_method('_render_block', args=[value]),
+                [nodes.Name(name.value, 'store')], [], body).\
+                    set_lineno(lineno)
+
+    def _render_block(self, value, caller=None):
+        return caller(value)
+
+
 # nicer import names
 load = LoadExtension
 url = URLExtension
+with_ = WithExtension
 
 
 register = Library()
 register.tag(load)
 register.tag(url)
+register.tag(with_)

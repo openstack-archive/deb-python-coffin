@@ -54,3 +54,10 @@ def test_url():
             assert type(e) == expected_result
         else:
             assert actual_result == expected_result
+
+
+def test_with():
+    from coffin.template.defaulttags import WithExtension
+    env = Environment(extensions=[WithExtension])
+
+    assert env.from_string('{{ x }}{% with y as x %}{{ x }}{% endwith %}{{ x }}').render({'x': 'x', 'y': 'y'}) == 'xyx'
