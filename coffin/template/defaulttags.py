@@ -130,7 +130,7 @@ class URLExtension(Extension):
 
 class WithExtension(Extension):
     """Adds a value to the context (inside this block) for caching and
-    easy access, just like the Django-version those.
+    easy access, just like the Django-version does.
 
     For example::
 
