@@ -73,6 +73,22 @@ class Library(DjangoLibrary):
         self.jinja2_filters = {}
         self.jinja2_extensions = []
 
+    @classmethod
+    def from_django(cls, django_library):
+        """Create a Coffin library object from a Django library.
+
+        Specifically, this ensures that filters already registered
+        with the Django library are also made available to Jinja,
+        where applicable.
+        """
+        from copy import copy
+        result = cls()
+        result.filters = copy(django_library.filters)
+        result.tags = copy(django_library.tags)
+        for name, func in result.filters.iteritems():
+            result._register_filter(name, func, jinja2_only=True)
+        return result
+
     def tag(self, name_or_node=None, compile_function=None):
         """Register a Django template tag (1) or Jinja 2 extension (2).
 
