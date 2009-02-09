@@ -45,3 +45,17 @@ def time(value, arg=None):
     if arg is None:
         arg = settings.TIME_FORMAT
     return time_format(value, arg)
+
+
+@register.filter(jinja2_only=True)
+def truncatewords(value, length):
+    # Jinja2 has it's own ``truncate`` filter that supports word
+    # boundaries and more stuff, but cannot deal with HTML.
+    from django.utils.text import truncate_words
+    return truncate_words(value, int(length))
+
+
+@register.filter(jinja2_only=True)
+def truncatewords_html(value, length):
+    from django.utils.text import truncate_html_words
+    return truncate_html_words(value, int(length))
