@@ -4,6 +4,7 @@ TODO: Most of the filters in here need to be updated for autoescaping.
 """
 
 from coffin.template import Library
+from jinja2.runtime import Undefined
 
 
 register = Library()
@@ -17,6 +18,8 @@ def url(view_name, *args, **kwargs):
 
 @register.filter(jinja2_only=True)
 def timesince(value, arg=None):
+    if value is None or isinstance(value, Undefined):
+        return u''
     from django.utils.timesince import timesince
     if arg:
         return timesince(value, arg)
@@ -25,12 +28,16 @@ def timesince(value, arg=None):
 
 @register.filter(jinja2_only=True)
 def timeuntil(value, arg=None):
+    if value is None or isinstance(value, Undefined):
+        return u''
     from django.utils.timesince import timeuntil
     return timeuntil(date, arg)
 
 
 @register.filter(jinja2_only=True)
 def date(value, arg=None):
+    if value is None or isinstance(value, Undefined):
+        return u''
     from django.conf import settings
     from django.utils.dateformat import format
     if arg is None:
@@ -40,6 +47,8 @@ def date(value, arg=None):
 
 @register.filter(jinja2_only=True)
 def time(value, arg=None):
+    if value is None or isinstance(value, Undefined):
+        return u''
     from django.conf import settings
     from django.utils.dateformat import time_format
     if arg is None:
