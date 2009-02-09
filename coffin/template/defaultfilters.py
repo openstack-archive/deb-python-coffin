@@ -68,3 +68,27 @@ def truncatewords(value, length):
 def truncatewords_html(value, length):
     from django.utils.text import truncate_html_words
     return truncate_html_words(value, int(length))
+
+
+@register.filter(jinja2_only=True)
+def pluralize(value, s1='s', s2=None):
+    """Like Django's pluralize-filter, but instead of using an optional
+    comma to separate singular and plural suffixes, it uses two distinct
+    parameters.
+
+    It also is less forgiving if applied to values that do not allow
+    making a decision between singular and plural.
+    """
+    if s2:
+        singular_suffix, plural_suffix = s1, s2
+    else:
+        plural_suffix = s1
+        singular_suffix = ''
+
+    try:
+        if int(value) != 1:
+            return plural_suffix
+    except TypeError: # not a string or a number; maybe it's a list?
+        if len(value) != 1:
+            return plural_suffix
+    return singular_suffix

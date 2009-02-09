@@ -13,8 +13,16 @@ Coffin currently makes the following Django tags available in Jinja:
 
     - {% with %}
 
-Django filters that are ported in Coffin: date, time, timesince, timeuntil,
-truncatewords, truncatewords_html.
+Django filters that are ported in Coffin: 
+
+    - date
+    - time
+    - timesince
+    - timeuntil,
+    - truncatewords
+    - truncatewords_html
+    - pluralize (expects an optional second parameter rather than the 
+      comma syntax)
 
 The template-related functionality of the following contrib modules has
 been ported in Coffin: ``coffin.contrib.markup``.
