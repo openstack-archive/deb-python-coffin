@@ -67,6 +67,22 @@ Example for a Jinja-enabled template library:
 
 == Other things of note ==
 
+When porting Django functionality, Coffin currently tries to avoid 
+Django's silent-errors approach, instead opting to be explicit. Django was 
+discussing the same thing before it's 1.0 release (*), but was constrained 
+by backwards-compatibility  concerns. However, if you are converting your 
+templates anyway, it might be a good opportunity for this change.
+
+    (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e)
+    
+Jinja2's ``TemplateSyntaxError``s (and potentially other exception types)
+are not compatible with Django's own template exceptions with respect to
+the TEMPLATE_DEBUG facility. If TEMPLATE_DEBUG is enabled and Jinja2 raises
+an exception, Django's error 500 page will sometimes not be able to handle
+it and crash. The solution is to disable the TEMPLATE_DEBUG setting in 
+Django. See http://code.djangoproject.com/ticket/10216 for further 
+information.
+
 ``coffin.template.loader`` is a port of ``django.template.loader`` and
 comes with a Jinja2-enabled version of ``get_template()``.
 
@@ -81,6 +97,13 @@ never will, requiring manual changes on your part:
 
     * The ``slice`` filter works differently in Jinja2 and Django.
       Replace it with Jinja's slice syntax: ``x[0:1]``.
+      
+    * Jinja's loop variable is called ``loop``, but Django's ``forloop``.
+    
+    * Implementing an equivalent to Django's cycle-tag might be difficult,
+      see also Django tickets #5908 and #7501. Jinja's own facilities 
+      are the ``forloop.cycle()`` function and the global function 
+      ``cycler``.
 
 
 == Running the tests ==
