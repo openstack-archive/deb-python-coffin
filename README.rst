@@ -106,7 +106,12 @@ never will, requiring manual changes on your part:
     * The ``slice`` filter works differently in Jinja2 and Django.
       Replace it with Jinja's slice syntax: ``x[0:1]``.
       
-    * Jinja's loop variable is called ``loop``, but Django's ``forloop``.
+    * Jinja2's ``default`` filter by itself only tests the variable for
+      **existance**. To match Django's behaviour, you need to pass ``True``
+      as the second argument, so that it will also provide the default 
+      value for things that are defined but evalute to ``False``
+      
+    * Jinja2's loop variable is called ``loop``, but Django's ``forloop``.
     
     * Implementing an equivalent to Django's cycle-tag might be difficult,
       see also Django tickets #5908 and #7501. Jinja's own facilities 
