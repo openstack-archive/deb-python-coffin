@@ -1,31 +1,8 @@
-﻿"""
-General notes:
-
-  - The Django ``stringfilter`` decorator is supported, but should not be
-    used when writing filters specifically for Jinja: It will lose the
-    attributes attached to the filter function by Jinja's
-    ``environmentfilter`` and ``contextfilter`` decorators, when used
-    in the wrong order.
-
-    Maybe coffin should provide a custom version of stringfilter.
-
-  - Rather than the global JINJA2_EXTENSIONS and JINJA2_FILTERS settings,
-    coffin could try to register Django's "builtins". One could then use
-    ``add_to_builtins`` to provide global components and avoid using
-    {% load %}.
-
-  - While transparently converting filters between Django and Jinja works
-    for the most part, there is an issue with Django's
-    ``mark_for_escaping``, as Jinja does not support a similar mechanism.
-    Instead, for Jinja, we escape such strings immediately (whereas Django
-    defers it to the template engine).
-"""
-
-import inspect
-from django.template import Library as DjangoLibrary, InvalidTemplateLibrary
-from django.utils.safestring import SafeUnicode, SafeData, EscapeData
-from jinja2 import Markup, environmentfilter
+﻿from django.template import Library as DjangoLibrary, InvalidTemplateLibrary
 from jinja2.ext import Extension as Jinja2Extension
+from coffin.interop import (
+    DJANGO, JINJA2,
+    guess_filter_type, jinja2_filter_to_django, django_filter_to_jinja2)
 
 
 __all__ = ('Library',)
@@ -62,6 +39,9 @@ class Library(DjangoLibrary):
     context- or environmentfilters are used. If ``cut`` in the above
     example where such an extended filter, it would only be registered
     with Jinja.
+
+    See also the module documentation for ``coffin.interop`` for
+    information on some of the limitations of this conversion.
 
     TODO: Jinja versions of the ``simple_tag`` and ``inclusion_tag``
     helpers would be nice, though since custom tags are not needed as
@@ -118,8 +98,9 @@ class Library(DjangoLibrary):
 
     def filter(self, name=None, filter_func=None, jinja2_only=False):
         """Register a filter with both the Django and Jinja2 template
-        engines, if possible (or only Jinja2, if ``jinja2_only`` is
-        specified).
+        engines, if possible - or only Jinja2, if ``jinja2_only`` is
+        specified. ``jinja2_only`` does not affect conversion of the
+        filter if neccessary.
 
         Implements a compatibility layer to handle the different
         auto-escaping approaches transparently. Extended Jinja2 filter
@@ -129,6 +110,11 @@ class Library(DjangoLibrary):
 
         Supports the same invocation syntax as the original Django
         version, including use as a decorator.
+
+        If the function is supposed to return the registered filter
+        (by example of the superclass implementation), but has
+        registered multiple filters, a tuple of all filters is
+        returned.
         """
         def filter_function(f):
             return self._register_filter(
@@ -155,65 +141,22 @@ class Library(DjangoLibrary):
                 "Library.filter: (%r, %r)", (name, filter_func))
 
     def _register_filter(self, name, func, jinja2_only=None):
-        # with those attributes, we know we have a jinja filter we
-        # cannot port to Django
-        if hasattr(func, 'contextfilter') or \
-           hasattr(func, 'environmentfilter'):
+        filter_type, can_be_ported = guess_filter_type(func)
+        if filter_type == JINJA2 and not can_be_ported:
             self.jinja2_filters[name] = func
             return func
-
-        # if there are more than two mandatory arguments, we know we
-        # have a jinja filter that is not supported by Django
-        args = inspect.getargspec(func)
-        if len(args[0]) - (len(args[3]) if args[3] else 0) > 2:
-            self.jinja2_filters[name] = func
+        elif filter_type == DJANGO and not can_be_ported:
+            if jinja2_only:
+                raise ValueError('This filter cannot be ported to Jinja2.')
+            self.filters[name] = func
             return func
-
-        # Jinja supports a similar machanism to Django's
-        # ``needs_autoescape`` filters (environment filters). We can
-        # thus support Django filters that use it in Jinja with just
-        # a little bit of parameter rewriting.
-        if not hasattr(func, 'needs_autoescape'):
-            django_func = jinja2_to_django_interop(func)
-            jinja2_func = django_to_jinja2_interop(func)
+        elif jinja2_only:
+            self.jinja2_filters[name] = func
+            return django_filter_to_jinja2(func)
         else:
-            django_func = func     # we know now it was written for Django
-            @environmentfilter
-            def jinja2_func(environment, *args, **kwargs):
-                kwargs['autoescape'] = environment.autoescape
-                return django_to_jinja2_interop(func)(*args, **kwargs)
-        # TODO: Django's "func.is_safe" is not yet handled
-
-        # register with all engines
-        if not jinja2_only:
+            # register the filter with both engines
+            django_func = jinja2_filter_to_django(func)
+            jinja2_func = django_filter_to_jinja2(func)
             self.filters[name] = django_func
-        self.jinja2_filters[name] = jinja2_func
-
-        return (django_func, jinja2_func)
-
-
-def django_to_jinja2_interop(filter_func):
-    def _convert(v):
-        if isinstance(v, SafeData):
-            return Markup(v)
-        if isinstance(v, EscapeData):
-            return Markup.escape(v)       # not 100% equivalent, see mod docs
-        return v
-    def wrapped(*args, **kwargs):
-        result = filter_func(*args, **kwargs)
-        return _convert(result)
-    return wrapped
-
-def jinja2_to_django_interop(filter_func):
-    def _convert(v):
-        # TODO: for now, this is not even necessary: Markup strings have
-        # a custom replace() method that is immume to Django's escape()
-        # attempts.
-        #if isinstance(v, Markup):
-        #    return SafeUnicode(v)         # jinja is always unicode
-        # ... Jinja does not have an EscapeData equivalent
-        return v
-    def wrapped(value, *args, **kwargs):
-        result = filter_func(value, *args, **kwargs)
-        return _convert(result)
-    return wrapped
+            self.jinja2_filters[name] = jinja2_func
+            return (django_func, jinja2_func)

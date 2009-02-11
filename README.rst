@@ -12,14 +12,14 @@ Coffin currently makes the following Django tags available in Jinja:
       libraries are always loaded. See also "Custom Filters and extensions".
 
     - {% with %}
-    
-    - {% cache %} - has currently an incompatibility: The second argument 
+
+    - {% cache %} - has currently an incompatibility: The second argument
       (the fragment name) needs to be specified with surrounding quotes
       if it is supposed to be a literal string, according to Jinja2 syntax.
-      It will otherwise be considered an identifer and resolved as a 
+      It will otherwise be considered an identifer and resolved as a
       variable.
 
-Django filters that are ported in Coffin: 
+Django filters that are ported in Coffin:
 
     - date
     - time
@@ -27,7 +27,7 @@ Django filters that are ported in Coffin:
     - timeuntil,
     - truncatewords
     - truncatewords_html
-    - pluralize (expects an optional second parameter rather than the 
+    - pluralize (expects an optional second parameter rather than the
       comma syntax)
 
 The template-related functionality of the following contrib modules has
@@ -81,24 +81,28 @@ Example for a Jinja-enabled template library:
 
 == Other things of note ==
 
-When porting Django functionality, Coffin currently tries to avoid 
-Django's silent-errors approach, instead opting to be explicit. Django was 
-discussing the same thing before it's 1.0 release (*), but was constrained 
-by backwards-compatibility  concerns. However, if you are converting your 
+When porting Django functionality, Coffin currently tries to avoid
+Django's silent-errors approach, instead opting to be explicit. Django was
+discussing the same thing before it's 1.0 release (*), but was constrained
+by backwards-compatibility  concerns. However, if you are converting your
 templates anyway, it might be a good opportunity for this change.
 
     (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e)
-    
+
 Jinja2's ``TemplateSyntaxError``s (and potentially other exception types)
 are not compatible with Django's own template exceptions with respect to
 the TEMPLATE_DEBUG facility. If TEMPLATE_DEBUG is enabled and Jinja2 raises
 an exception, Django's error 500 page will sometimes not be able to handle
-it and crash. The solution is to disable the TEMPLATE_DEBUG setting in 
-Django. See http://code.djangoproject.com/ticket/10216 for further 
+it and crash. The solution is to disable the TEMPLATE_DEBUG setting in
+Django. See http://code.djangoproject.com/ticket/10216 for further
 information.
 
 ``coffin.template.loader`` is a port of ``django.template.loader`` and
 comes with a Jinja2-enabled version of ``get_template()``.
+
+``coffin.interop`` exposes functionality to manually convert Django
+filters to Jinja2 and vice-versa. This is also what Coffin's ``Library``
+object uses.
 
 A Jinja2-enabled version of ``add_to_builtins`` can be found in the
 ``django.template`` namespace.
@@ -111,21 +115,21 @@ never will, requiring manual changes on your part:
 
     * The ``slice`` filter works differently in Jinja2 and Django.
       Replace it with Jinja's slice syntax: ``x[0:1]``.
-      
+
     * Jinja2's ``default`` filter by itself only tests the variable for
       **existance**. To match Django's behaviour, you need to pass ``True``
-      as the second argument, so that it will also provide the default 
+      as the second argument, so that it will also provide the default
       value for things that are defined but evalute to ``False``
-      
+
     * Jinja2's loop variable is called ``loop``, but Django's ``forloop``.
-    
+
     * Implementing an equivalent to Django's cycle-tag might be difficult,
-      see also Django tickets #5908 and #7501. Jinja's own facilities 
-      are the ``forloop.cycle()`` function and the global function 
+      see also Django tickets #5908 and #7501. Jinja's own facilities
+      are the ``forloop.cycle()`` function and the global function
       ``cycler``.
-      
+
     * The ``add`` filter might not be worth being implemented. ``{{x+y}} ``
-      is a pretty basic feature of Jinja2, and could almost be lumped 
+      is a pretty basic feature of Jinja2, and could almost be lumped
       together with the other Django->Jinja2 syntax changes.
 
 

@@ -26,6 +26,10 @@ def add_to_builtins(module_name):
     filters directly. This would make it easier to use this function
     with 3rd party Jinja extensions that do not know about Coffin and
     thus will not provide a Library object.
+
+    XXX/TODO: Why do we need our own custom list of builtins? Our
+    Library object is compatible, remember!? We can just add them
+    directly to Django's own list of builtins.
     """
     builtins.append(get_library(module_name))
     django_add_to_builtins(module_name)
