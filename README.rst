@@ -123,6 +123,10 @@ never will, requiring manual changes on your part:
       see also Django tickets #5908 and #7501. Jinja's own facilities 
       are the ``forloop.cycle()`` function and the global function 
       ``cycler``.
+      
+    * The ``add`` filter might not be worth being implemented. ``{{x+y}} ``
+      is a pretty basic feature of Jinja2, and could almost be lumped 
+      together with the other Django->Jinja2 syntax changes.
 
 
 == Running the tests ==
