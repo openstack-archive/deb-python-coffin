@@ -61,3 +61,19 @@ def test_with():
     env = Environment(extensions=[WithExtension])
 
     assert env.from_string('{{ x }}{% with y as x %}{{ x }}{% endwith %}{{ x }}').render({'x': 'x', 'y': 'y'}) == 'xyx'
+
+
+def test_cache():
+    from coffin.template.defaulttags import CacheExtension
+    env = Environment(extensions=[CacheExtension])
+
+    x = 0
+    assert env.from_string('{%cache 500 "ab"%}{{x}}{%endcache%}').render({'x': x}) == '0'
+    # cache is used; Jinja2 expressions work
+    x += 1
+    assert env.from_string('{%cache 50*10 "a"+"b"%}{{x}}{%endcache%}').render({'x': x}) == '0'
+    # vary-arguments can be used
+    x += 1
+    assert env.from_string('{%cache 50*10 "ab" x "foo"%}{{x}}{%endcache%}').render({'x': x}) == '2'
+    x += 1
+    assert env.from_string('{%cache 50*10 "ab" x "foo"%}{{x}}{%endcache%}').render({'x': x}) == '3'

@@ -12,6 +12,12 @@ Coffin currently makes the following Django tags available in Jinja:
       libraries are always loaded. See also "Custom Filters and extensions".
 
     - {% with %}
+    
+    - {% cache %} - has currently an incompatibility: The second argument 
+      (the fragment name) needs to be specified with surrounding quotes
+      if it is supposed to be a literal string, according to Jinja2 syntax.
+      It will otherwise be considered an identifer and resolved as a 
+      variable.
 
 Django filters that are ported in Coffin: 
 
