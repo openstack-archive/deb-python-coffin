@@ -136,6 +136,13 @@ class WithExtension(Extension):
         {% with person.some_sql_method as total %}
             {{ total }} object{{ total|pluralize }}
         {% endwith %}
+
+    TODO: The new Scope node introduced in Jinja2 6334c1eade73 (the 2.2
+    dev version) would help here, but we don't want to rely on that yet.
+    See also:
+        http://dev.pocoo.org/projects/jinja/browser/tests/test_ext.py
+        http://dev.pocoo.org/projects/jinja/ticket/331
+        http://dev.pocoo.org/projects/jinja/ticket/329
     """
 
     tags = set(['with'])
