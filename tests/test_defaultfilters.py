@@ -2,8 +2,10 @@ from datetime import datetime, date
 from nose.tools import assert_raises
 from coffin.common import get_env
 
+
 def r(s, context={}):
     return get_env().from_string(s).render(context)
+
 
 def test_url():
     # project name is optional
@@ -21,6 +23,17 @@ def test_pluralize():
     assert r('vote{{ [1,2,3]|pluralize }}') == 'votes'
     assert_raises(TypeError, r, 'vote{{ x|pluralize }}', {'x': object()})
     assert_raises(ValueError, r, 'vote{{ x|pluralize }}', {'x': 'foo'})
+
+
+def test_floatformat():
+    assert r('{{ 1.3434|floatformat }}') == '1.3'
+    assert r('{{ 1.3511|floatformat }}') == '1.4'
+    assert r('{{ 1.3|floatformat(2) }}') == '1.30'
+    assert r('{{ 1.30|floatformat(-3) }}') == '1.300'
+    assert r('{{ 1.000|floatformat(3) }}') == '1.000'
+    assert r('{{ 1.000|floatformat(-3) }}') == '1'
+    assert_raises(ValueError, r, '{{ "foo"|floatformat(3) }}')
+    assert_raises(ValueError, r, '{{ 4.33|floatformat("foo") }}')
 
 
 def test_date_stuff():

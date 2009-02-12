@@ -92,3 +92,17 @@ def pluralize(value, s1='s', s2=None):
         if len(value) != 1:
             return plural_suffix
     return singular_suffix
+
+
+@register.filter(jinja2_only=True)
+def floatformat(value, arg=-1):
+    """Builds on top of Django's own version, but adds strict error
+    checking, staying with the philosophy.
+    """
+    from django.template.defaultfilters import floatformat
+    from coffin.interop import django_filter_to_jinja2
+    arg = int(arg)  # raise exception
+    result = django_filter_to_jinja2(floatformat)(value, arg)
+    if result == '':  # django couldn't handle the value
+        raise ValueError(value)
+    return result
