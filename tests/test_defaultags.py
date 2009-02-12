@@ -10,6 +10,9 @@ def test_load():
     assert env.from_string('a{% load news.photos %}b').render() == 'ab'
     assert env.from_string('a{% load "news.photos" %}b').render() == 'ab'
 
+    # [bug] invalid code was generated under certain circumstances
+    assert env.from_string('{% set x=1 %}{% load "news.photos" %}').render() == ''
+
 
 def test_url():
     from coffin.template.defaulttags import URLExtension

@@ -21,8 +21,7 @@ class LoadExtension(Extension):
     def parse(self, parser):
         while not parser.stream.current.type == 'block_end':
             parser.stream.next()
-
-        return nodes.Const('')
+        return []
 
 
 class URLExtension(Extension):
