@@ -46,9 +46,12 @@ def test_filters():
     # - when requiring more than one argument
     env.from_string('{{ "b"|multiarg(1,2) }}')
     assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|multiarg }}')
-    # - when requiring more than one argument
+    # - when Jinja2-exclusivity is explicitly requested
     env.from_string('{{ "b"|jinja_forced }}')
     assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|jinja_forced }}')
+    # [bug] Jinja2-exclusivity caused the compatibility layer to be not
+    # applied, causing for example safe strings to be escaped.
+    assert env.from_string('{{ "><"|django_jinja_forced }}').render() == '><'
 
 
 def test_filter_compat_safestrings():

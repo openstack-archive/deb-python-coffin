@@ -18,6 +18,13 @@ def multiarg(value, arg1, arg2):
 def jinja_forced(value):
     return ""
 
+def django_jinja_forced(value):
+    # a django filter that returns a django-safestring. It will *only*
+    # be added to jinja, and coffin will hopefully ensure the string
+    # stays safe.
+    from django.utils.safestring import mark_safe
+    return mark_safe(value)
+
 
 from coffin.template import Library
 register = Library()
@@ -25,3 +32,4 @@ register.filter('environment', environment)
 register.filter('context', context)
 register.filter('multiarg', multiarg)
 register.filter('jinja_forced', jinja_forced, jinja2_only=True)
+register.filter('django_jinja_forced', django_jinja_forced, jinja2_only=True)

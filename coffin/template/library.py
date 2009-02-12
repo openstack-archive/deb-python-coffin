@@ -151,8 +151,9 @@ class Library(DjangoLibrary):
             self.filters[name] = func
             return func
         elif jinja2_only:
+            func = django_filter_to_jinja2(func)
             self.jinja2_filters[name] = func
-            return django_filter_to_jinja2(func)
+            return func
         else:
             # register the filter with both engines
             django_func = jinja2_filter_to_django(func)
