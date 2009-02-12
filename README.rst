@@ -88,7 +88,7 @@ discussing the same thing before it's 1.0 release (*), but was constrained
 by backwards-compatibility  concerns. However, if you are converting your
 templates anyway, it might be a good opportunity for this change.
 
-    (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e)
+    (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e
 
 Jinja2's ``TemplateSyntaxError``s (and potentially other exception types)
 are not compatible with Django's own template exceptions with respect to
@@ -132,6 +132,10 @@ never will, requiring manual changes on your part:
     * The ``add`` filter might not be worth being implemented. ``{{x+y}} ``
       is a pretty basic feature of Jinja2, and could almost be lumped
       together with the other Django->Jinja2 syntax changes.
+
+    * Django-type safe strings passed through the context are not converted
+      and therefore not recognized by Jinja2. For example, a notable place
+      were this would occur is the HTML generation of Django Forms.
 
 
 == Running the tests ==
