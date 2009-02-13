@@ -37,9 +37,16 @@ class Template(_Jinja2Template):
         # be parse ourself and iterate over the AST?
         raise NotImplementedError()
 
-    def render(self, context):
+    def render(self, context=None):
+        """Differs from Django's own render() slightly in that makes the
+        ``context`` parameter optional. We try to strike a middle ground
+        here between implementing Django's interface while still supporting
+        Jinja's own call syntax as well.
+        """
         if isinstance(context, DjangoContext):
             context = dict_from_django_context(context)
+        elif context is None:
+            context = {}
         assert isinstance(context, dict)  # Required for **-operator.
         return super(Template, self).render(**context)
 

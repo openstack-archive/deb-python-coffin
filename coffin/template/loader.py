@@ -21,15 +21,7 @@ def find_template_source(name, dirs=None):
 def get_template(template_name):
     # Jinja will handle this for us, and get_env() also initializes
     # the loader backends the first time it is called.
-    # ``CoffinTemplate`` ensures the instance is compatible with
-    # Django's interface.
-    #
-    # TODO: investigate setting the environent.template_class
-    # attribute to this class. could that get as around the __class__
-    # assignments?
-    result = get_env().get_template(template_name)
-    result.__class__ = CoffinTemplate
-    return result
+    return get_env().get_template(template_name)
 
 
 def get_template_from_string(source):

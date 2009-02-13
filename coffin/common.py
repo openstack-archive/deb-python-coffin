@@ -142,7 +142,7 @@ def get_env():
         filters = _get_filters()
         extensions = _get_extensions()
         arguments = {
-            'autoescape': True
+            'autoescape': True,
         }
 
         need_env.send(sender=Environment, arguments=arguments,
@@ -157,4 +157,6 @@ def get_env():
 
             _ENV = Environment(**arguments)
             _ENV.filters.update(filters)
+            from coffin.template import Template as CoffinTemplate
+            _ENV.template_class = CoffinTemplate
     return _ENV
