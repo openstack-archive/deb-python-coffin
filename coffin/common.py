@@ -4,8 +4,6 @@ import warnings
 from django import dispatch
 from jinja2 import Environment, loaders
 
-from coffin.template.loaders import jinja_loader_from_django_loader
-
 
 __all__ = ('get_env', 'need_env')
 
@@ -27,6 +25,7 @@ def _get_loaders():
     Allows for Jinja2 loader instances to be placed in the template loader
     settings.
     """
+    from coffin.template.loaders import jinja_loader_from_django_loader
     if _LOADERS:
         return _LOADERS
     from django.conf import settings
