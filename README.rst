@@ -103,6 +103,10 @@ information.
 ``coffin.template.loader`` is a port of ``django.template.loader`` and
 comes with a Jinja2-enabled version of ``get_template()``.
 
+``coffin.template.Template`` is a Jinja2-Template that supports the 
+Django render interface (being passed an instance of Context), and uses
+Coffin's global Jinja2 environment.
+
 ``coffin.interop`` exposes functionality to manually convert Django
 filters to Jinja2 and vice-versa. This is also what Coffin's ``Library``
 object uses.

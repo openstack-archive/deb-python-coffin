@@ -4,8 +4,8 @@ The module provides a generic way to load templates from an arbitrary
 backend storage (e.g. filesystem, database).
 """
 
-from django.template.context import Context as DjangoContext
-from coffin.common import dict_from_django_context, get_env
+from coffin.common import get_env
+from coffin.template import Template as CoffinTemplate
 from jinja2 import TemplateNotFound
 
 
@@ -19,11 +19,17 @@ def find_template_source(name, dirs=None):
 
 
 def get_template(template_name):
+    # Jinja will handle this for us, and get_env() also initializes
+    # the loader backends the first time it is called.
+    # ``CoffinTemplate`` ensures the instance is compatible with
+    # Django's interface.
     #
-    # Jinja will handle this for us, and get_env() also
-    # initializes the loader backends the first time it
-    # is called.
-    return get_env().get_template(template_name)
+    # TODO: investigate setting the environent.template_class
+    # attribute to this class. could that get as around the __class__
+    # assignments?
+    result = get_env().get_template(template_name)
+    result.__class__ = CoffinTemplate
+    return result
 
 
 def get_template_from_string(source):
@@ -36,27 +42,24 @@ def get_template_from_string(source):
 
 def render_to_string(template_name, dictionary=None, context_instance=None):
     """Loads the given ``template_name`` and renders it with the given
-    dictionary as context. The ``template_name`` may be a string to
-    load a single template using ``get_template``, or it may be a
-    tuple to use ``select_template`` to find one of
-    the templates in the list. Returns a string.
+    dictionary as context. The ``template_name`` may be a string to load
+    a single template using ``get_template``, or it may be a tuple to use
+    ``select_template`` to find one of the templates in the list.
 
-    :param template_name: Filename of the template to get or a sequence of
-        filenames to try, in order.
-    :param dictionary: Rendering context for the template.
-    :returns: A response object with the evaluated template as a payload.
+    ``dictionary`` may also be Django ``Context`` object.
+
+    Returns a string.
     """
     dictionary = dictionary or {}
     if isinstance(template_name, (list, tuple)):
         template = select_template(template_name)
     else:
         template = get_template(template_name)
-    if isinstance(dictionary, DjangoContext):
-        dictionary = dict_from_django_context(dictionary)
-    assert isinstance(dictionary, dict)  # Required for **-operator.
     if context_instance:
-        dictionary.update(dict_from_django_context(context_instance))
-    return template.render(**dictionary)
+        context_instance.update(dictionary)
+    else:
+        context_instance = Context(dictionary)
+    return template.render(dictionary)
 
 
 def select_template(template_name_list):

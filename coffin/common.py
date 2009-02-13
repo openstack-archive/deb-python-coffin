@@ -7,7 +7,7 @@ from jinja2 import Environment, loaders
 from coffin.template.loaders import jinja_loader_from_django_loader
 
 
-__all__ = ('get_env', 'dict_from_django_context', 'need_env')
+__all__ = ('get_env', 'need_env')
 
 
 _ENV = None
@@ -159,12 +159,3 @@ def get_env():
             _ENV = Environment(**arguments)
             _ENV.filters.update(filters)
     return _ENV
-
-
-def dict_from_django_context(context):
-    """Flattens a Django :class:`django.template.context.Context` object."""
-    dict_ = {}
-    # Newest dicts are up front, so update from oldest to newest.
-    for subcontext in reversed(list(context)):
-        dict_.update(subcontext)
-    return dict_
