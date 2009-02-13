@@ -137,6 +137,9 @@ never will, requiring manual changes on your part:
       and therefore not recognized by Jinja2. For example, a notable place
       were this would occur is the HTML generation of Django Forms.
 
+    * The {% autoescape %} tag is immensily difficult to port and currently
+      not supported.
+
 
 == Running the tests ==
 

@@ -24,6 +24,77 @@ class LoadExtension(Extension):
         return []
 
 
+"""class AutoescapeExtension(Extension):
+    ""#"
+    Template to output works in three phases in Jinja2: parsing,
+    generation (compilation, AST-traversal), and rendering (execution).
+
+    Unfortunatly, the environment ``autoescape`` option comes into effect
+    during traversal, the part where we happen to have basically no control
+    over as an extension. It determines whether output is wrapped in
+    ``escape()`` calls.
+
+    Solutions that could possibly work:
+
+        * This extension could preprocess it's childnodes and wrap
+          everything output related inside the appropriate
+          ``Markup()`` or escape() call.
+
+        * We could use the ``preprocess`` hook to insert the
+          appropriate ``|safe`` and ``|escape`` filters on a
+          string-basis. This is very unlikely to work well.
+
+    There's also the issue of inheritance and just generally the nesting
+    of autoescape-tags to consider.
+
+    Other things of note:
+
+        * We can access ``parser.environment``, but that would only
+          affect the **parsing** of our child nodes.
+
+        * In the commented-out code below we are trying to affect the
+          autoescape setting during rendering. As noted, this could be
+          necessary for rare border cases where custom extension use
+          the autoescape attribute.
+
+    Both the above things would break Environment thread-safety though!
+
+    Overall, it's not looking to good for this extension.
+    ""#"
+
+    tags = ['autoescape']
+
+    def parse(self, parser):
+        lineno = parser.stream.next().lineno
+
+        old_autoescape = parser.environment.autoescape
+        parser.environment.autoescape = True
+        try:
+            body = parser.parse_statements(
+                ['name:endautoescape'], drop_needle=True)
+        finally:
+            parser.environment.autoescape = old_autoescape
+
+        # Not sure yet if the code below is necessary - it changes
+        # environment.autoescape during template rendering. If for example
+        # a CallBlock function accesses ``environment.autoescape``, it
+        # presumably is.
+        # This also should use try-finally though, which Jinja's API
+        # doesn't support either. We could fake that as well by using
+        # InternalNames that output the necessary indentation and keywords,
+        # but at this point it starts to get really messy.
+        #
+        # TODO: Actually, there's ``nodes.EnvironmentAttribute``.
+        #ae_setting = object.__new__(nodes.InternalName)
+        #nodes.Node.__init__(ae_setting, 'environment.autoescape', lineno=lineno)
+        #temp = parser.free_identifier()
+        #body.insert(0, nodes.Assign(temp, ae_setting))
+        #body.insert(1, nodes.Assign(ae_setting, nodes.Const(True)))
+        #body.insert(len(body), nodes.Assign(ae_setting, temp))
+        return body
+"""
+
+
 class URLExtension(Extension):
     """Returns an absolute URL matching given view with its parameters.
 
