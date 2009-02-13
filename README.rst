@@ -5,19 +5,21 @@
 
 Coffin currently makes the following Django tags available in Jinja:
 
-    - {% url %} - additionally, a ``"view"|url()`` filter is also
-      available.
-
-    - {% load %} - is actually a no-op in Coffin, since templatetag
-      libraries are always loaded. See also "Custom Filters and extensions".
-
-    - {% with %}
-
     - {% cache %} - has currently an incompatibility: The second argument
       (the fragment name) needs to be specified with surrounding quotes
       if it is supposed to be a literal string, according to Jinja2 syntax.
       It will otherwise be considered an identifer and resolved as a
       variable.
+
+    - {% load %} - is actually a no-op in Coffin, since templatetag
+      libraries are always loaded. See also "Custom Filters and extensions".
+
+    - {% spaceless %}
+
+    - {% url %} - additionally, a ``"view"|url()`` filter is also
+      available.
+
+    - {% with %}
 
 Django filters that are ported in Coffin:
 

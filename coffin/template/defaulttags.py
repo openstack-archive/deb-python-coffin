@@ -326,11 +326,34 @@ class CacheExtension(Extension):
         return value
 
 
+class SpacelessExtension(Extension):
+    """Removes whitespace between HTML tags, including tab and
+    newline characters.
+
+    Works exactly like Django's own tag.
+    """
+
+    tags = ['spaceless']
+
+    def parse(self, parser):
+        lineno = parser.stream.next().lineno
+        body = parser.parse_statements(['name:endspaceless'], drop_needle=True)
+        return nodes.CallBlock(
+            self.call_method('_strip_spaces', [], [], None, None),
+            [], [], body
+        ).set_lineno(lineno)
+
+    def _strip_spaces(self, caller=None):
+        from django.utils.html import strip_spaces_between_tags
+        return strip_spaces_between_tags(caller().strip())
+
+
 # nicer import names
 load = LoadExtension
 url = URLExtension
 with_ = WithExtension
 cache = CacheExtension
+spaceless = SpacelessExtension
 
 
 register = Library()
@@ -338,3 +361,4 @@ register.tag(load)
 register.tag(url)
 register.tag(with_)
 register.tag(cache)
+register.tag(spaceless)

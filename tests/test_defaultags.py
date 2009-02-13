@@ -14,6 +14,22 @@ def test_load():
     assert env.from_string('{% set x=1 %}{% load "news.photos" %}').render() == ''
 
 
+def test_spaceless():
+    from coffin.template.defaulttags import SpacelessExtension
+    env = Environment(extensions=[SpacelessExtension])
+
+    assert env.from_string("""{% spaceless %}
+<p>
+    <a href="foo/">Foo</a>
+</p>
+{% endspaceless %}""").render() == '<p><a href="foo/">Foo</a></p>'
+    assert env.from_string("""{% spaceless %}
+    <strong>
+        Hello
+    </strong>
+{% endspaceless %}""").render() == '<strong>\n        Hello\n    </strong>'
+
+
 def test_url():
     from coffin.template.defaulttags import URLExtension
     from jinja2.exceptions import TemplateSyntaxError
