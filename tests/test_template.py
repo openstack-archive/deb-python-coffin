@@ -22,10 +22,12 @@ def test_template_class():
     assert Template('{{x}};{{y}}').render(c) == '1;2'
 
 
-#def test_render_to_string():
-#    # [bug] Test that the values given directly do overwrite does that
+def test_render_to_string():
+    # [bug] Test that the values given directly do overwrite does that
     # are already exist in the given context_instance. Due to a bug this
-#    # was previously not the case.
-#    from django.template import Context
-#    c = Context({'x': 'old'})
-#    assert render_to_string)
+    # was previously not the case.
+    from django.template import Context
+    from coffin.template.loader import render_to_string
+    c = Context({'x': 'old'})
+    print  render_to_string('render-x.html', {'x': 'new'}, context_instance=c)
+    assert render_to_string('render-x.html', {'x': 'new'}, context_instance=c) == 'new'
