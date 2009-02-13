@@ -51,7 +51,7 @@ def render_to_string(template_name, dictionary=None, context_instance=None):
         context_instance.update(dictionary)
     else:
         context_instance = Context(dictionary)
-    return template.render(dictionary)
+    return template.render(context_instance)
 
 
 def select_template(template_name_list):

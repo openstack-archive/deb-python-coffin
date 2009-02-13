@@ -28,6 +28,10 @@ def test_render_to_string():
     # was previously not the case.
     from django.template import Context
     from coffin.template.loader import render_to_string
-    c = Context({'x': 'old'})
-    print  render_to_string('render-x.html', {'x': 'new'}, context_instance=c)
-    assert render_to_string('render-x.html', {'x': 'new'}, context_instance=c) == 'new'
+    assert render_to_string('render-x.html', {'x': 'new'},
+        context_instance=Context({'x': 'old'})) == 'new'
+
+    # [bug] Test that the values from context_instance actually make it
+    # into the template.
+    assert render_to_string('render-x.html',
+        context_instance=Context({'x': 'old'})) == 'old'
