@@ -34,7 +34,11 @@ Django filters that are ported in Coffin:
     - truncatewords_html
 
 The template-related functionality of the following contrib modules has
-been ported in Coffin: ``coffin.contrib.markup``.
+been ported in Coffin: 
+
+    - ``coffin.contrib.markup``
+    - ``coffin.contrib.syndication``.
+    
 
 == Rendering ==
 
