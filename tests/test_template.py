@@ -34,4 +34,10 @@ def test_render_to_string():
     # [bug] Test that the values from context_instance actually make it
     # into the template.
     assert render_to_string('render-x.html',
-        context_instance=Context({'x': 'old'})) == 'old'
+        context_instance=Context({'x': 'foo'})) == 'foo'
+
+    # [bug] Call without the optional ``context_instance`` argument works
+    assert render_to_string('render-x.html', {'x': 'foo'}) == 'foo'
+
+    # ``dictionary`` argument may be a Context instance
+    assert render_to_string('render-x.html', Context({'x': 'foo'})) == 'foo'
