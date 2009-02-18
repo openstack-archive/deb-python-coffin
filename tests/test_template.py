@@ -21,6 +21,13 @@ def test_template_class():
     c.update({'y': '2'})
     assert Template('{{x}};{{y}}').render(c) == '1;2'
 
+    # [bug] render can handle nested Context objects
+    c1 = Context(); c2 = Context(); c3 = Context()
+    c3['foo'] = 'bar'
+    c2.update(c3)
+    c1.update(c2)
+    assert Template('{{foo}}').render(c1) == 'bar'
+
 
 def test_render_to_string():
     # [bug] Test that the values given directly do overwrite does that
@@ -41,3 +48,7 @@ def test_render_to_string():
 
     # ``dictionary`` argument may be a Context instance
     assert render_to_string('render-x.html', Context({'x': 'foo'})) == 'foo'
+
+    # [bug] Both ``dictionary`` and ``context_instance`` may be
+    # Context objects
+    assert render_to_string('render-x.html', Context({'x': 'foo'}), context_instance=Context()) == 'foo'

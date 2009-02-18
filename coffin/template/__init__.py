@@ -43,21 +43,25 @@ class Template(_Jinja2Template):
         here between implementing Django's interface while still supporting
         Jinja's own call syntax as well.
         """
-        if isinstance(context, DjangoContext):
-            context = dict_from_django_context(context)
-        elif context is None:
+        if context is None:
             context = {}
+        else:
+            context = dict_from_django_context(context)
         assert isinstance(context, dict)  # Required for **-operator.
         return super(Template, self).render(**context)
 
 
 def dict_from_django_context(context):
-    """Flattens a Django :class:`django.template.context.Context` object."""
-    dict_ = {}
-    # Newest dicts are up front, so update from oldest to newest.
-    for subcontext in reversed(list(context)):
-        dict_.update(subcontext)
-    return dict_
+    """Flattens a Django :class:`django.template.context.Context` object.
+    """
+    if not isinstance(context, DjangoContext):
+        return context
+    else:
+        dict_ = {}
+        # Newest dicts are up front, so update from oldest to newest.
+        for subcontext in reversed(list(context)):
+            dict_.update(dict_from_django_context(subcontext))
+        return dict_
 
 
 # libraries to load by default for a new environment
