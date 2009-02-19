@@ -9,6 +9,14 @@ from django.template import Template, Context, \
     TemplateSyntaxError as DjangoTemplateSyntaxError
 
 
+# this module tampers with the autoescape setting. make sure it is
+# reset after we are done.
+def setup_module(module):
+    module.old_autoescape = get_env().autoescape
+def teardown_module(module):
+    get_env().autoescape = module.old_autoescape
+
+
 def test_nodes_and_extensions():
     """Test availability of registered nodes/extensions.
     """
