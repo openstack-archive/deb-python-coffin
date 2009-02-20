@@ -24,6 +24,7 @@ from jinja2 import Markup, environmentfilter
 
 __all__ = (
     'DJANGO', 'JINJA2',
+    'django_safestring_to_jinja2_markup'
     'django_filter_to_jinja2',
     'jinja2_filter_to_django',
     'guess_filter_type',)
@@ -31,6 +32,18 @@ __all__ = (
 
 DJANGO = 'django'
 JINJA2 = 'jinja2'
+
+
+def django_safestring_to_jinja2_markup(v):
+    """Converts Django safe string data to Jinja2 ``Markup`` objects.
+
+    All unknown types are simple passed through.
+    """
+    if isinstance(v, SafeData):
+        return Markup(v)
+    if isinstance(v, EscapeData):
+        return Markup.escape(v)       # not 100% equivalent, see mod docs
+    return v
 
 
 def django_filter_to_jinja2(filter_func):
@@ -43,15 +56,9 @@ def django_filter_to_jinja2(filter_func):
 
     TODO: Django's "func.is_safe" is not yet handled
     """
-    def _convert(v):
-        if isinstance(v, SafeData):
-            return Markup(v)
-        if isinstance(v, EscapeData):
-            return Markup.escape(v)       # not 100% equivalent, see mod docs
-        return v
     def conversion_wrapper(*args, **kwargs):
         result = filter_func(*args, **kwargs)
-        return _convert(result)
+        return django_safestring_to_jinja2_markup(result)
     # Jinja2 supports a similar machanism to Django's
     # ``needs_autoescape`` filters: environment filters. We can
     # thus support Django filters that use it in Jinja2 with just
