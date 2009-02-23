@@ -149,6 +149,13 @@ never will, requiring manual changes on your part:
 
     * The {% autoescape %} tag is immensily difficult to port and currently
       not supported.
+      
+    * Literal strings from within a template are not automatically 
+      considered  "safe" by Jinja2, different from Django. According to 
+      Armin Ronacher, this is a design limitation that will not be changed,
+      due to many Python builtin functions and methods, whichyou are free
+      to use in Jinja2, expecting raw, untainted strings and thus not being 
+      able to work with Jinja2's ``Markup`` string.
 
 
 == Running the tests ==
