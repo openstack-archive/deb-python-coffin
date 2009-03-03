@@ -1,6 +1,6 @@
 from django import http
 from django.template import Context, RequestContext
-from coffin.shortcuts import render_template
+from coffin.template.loader import render_to_string
 
 
 __all__ = ('page_not_found', 'server_error', 'shortcut')
@@ -19,7 +19,7 @@ def page_not_found(request, template_name='404.html'):
         request_path
             The path of the requested URL (e.g., '/app/pages/bad_page/')
     """
-    content = render_template(template_name,
+    content = render_to_string(template_name,
         RequestContext(request, {'request_path': request.path}))
     return http.HttpResponseNotFound(content)
 
@@ -31,5 +31,5 @@ def server_error(request, template_name='500.html'):
     Templates: `500.html`
     Context: None
     """
-    content = render_template(template_name, Context({}))
+    content = render_to_string(template_name, Context({}))
     return http.HttpResponseServerError(content)
