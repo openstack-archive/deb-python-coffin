@@ -21,6 +21,9 @@ def test_pluralize():
     assert r('cand{{ 1|pluralize("y", "ies") }}') == 'candy'
     assert r('cand{{ 2|pluralize("y", "ies") }}') == 'candies'
     assert r('vote{{ [1,2,3]|pluralize }}') == 'votes'
+    assert r('anonyme{{ 0|pluralize("r", "") }}') == 'anonyme'
+    assert r('anonyme{{ 1|pluralize("r", "") }}') == 'anonymer'
+    assert r('vote{{ 1|pluralize }}') == 'vote'
     assert_raises(TypeError, r, 'vote{{ x|pluralize }}', {'x': object()})
     assert_raises(ValueError, r, 'vote{{ x|pluralize }}', {'x': 'foo'})
 

@@ -79,7 +79,7 @@ def pluralize(value, s1='s', s2=None):
     It also is less forgiving if applied to values that do not allow
     making a decision between singular and plural.
     """
-    if s2:
+    if s2 is not None:
         singular_suffix, plural_suffix = s1, s2
     else:
         plural_suffix = s1
