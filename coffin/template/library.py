@@ -5,7 +5,7 @@ from coffin.interop import (
     guess_filter_type, jinja2_filter_to_django, django_filter_to_jinja2)
 
 
-__all__ = ('Library',)
+__all__ = ['Library']
 
 
 class Library(DjangoLibrary):
@@ -52,6 +52,7 @@ class Library(DjangoLibrary):
         super(Library, self).__init__()
         self.jinja2_filters = {}
         self.jinja2_extensions = []
+        self.jinja2_globals = {}
 
     @classmethod
     def from_django(cls, django_library):
@@ -68,6 +69,31 @@ class Library(DjangoLibrary):
         for name, func in result.filters.iteritems():
             result._register_filter(name, func, jinja2_only=True)
         return result
+
+    def object(self, name=None, func=None):
+        def inner(f):
+            name = getattr(f, "_decorated_function", f).__name__
+            self.jinja2_globals[name] = f
+            return f
+        if name == None and func == None:
+            # @register.filter()
+            return inner
+        elif func == None:
+            if (callable(name)):
+                # @register.filter
+                return inner(name)
+            else:
+                # @register.filter('somename') or @register.filter(name='somename')
+                def dec(func):
+                    return self.object(name, func, jinja2_only=jinja2_only)
+                return dec
+        elif name != None and func != None:
+            # register.filter('somename', somefunc)
+            self.jinja2_globals[name] = func
+            return func
+        else:
+            raise InvalidTemplateLibrary("Unsupported arguments to "
+                "Library.object: (%r, %r)", (name, func))
 
     def tag(self, name_or_node=None, compile_function=None):
         """Register a Django template tag (1) or Jinja 2 extension (2).
@@ -126,7 +152,7 @@ class Library(DjangoLibrary):
         elif filter_func == None:
             if (callable(name)):
                 # @register.filter
-                return self.filter_function(name)
+                return filter_function(name)
             else:
                 # @register.filter('somename') or @register.filter(name='somename')
                 def dec(func):

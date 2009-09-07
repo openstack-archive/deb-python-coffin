@@ -1,48 +1,50 @@
-= Coffin: Jinja2 adapter for Django =
+Coffin: Jinja2 adapter for Django
+---------------------------------
 
 
-== Supported Django template functionality ==
+Supported Django template functionality
+=======================================
 
 Coffin currently makes the following Django tags available in Jinja:
 
-    - {% cache %} - has currently an incompatibility: The second argument
-      (the fragment name) needs to be specified with surrounding quotes
-      if it is supposed to be a literal string, according to Jinja2 syntax.
-      It will otherwise be considered an identifer and resolved as a
-      variable.
+- {% cache %} - has currently an incompatibility: The second argument
+  (the fragment name) needs to be specified with surrounding quotes
+  if it is supposed to be a literal string, according to Jinja2 syntax.
+  It will otherwise be considered an identifer and resolved as a
+  variable.
 
-    - {% load %} - is actually a no-op in Coffin, since templatetag
-      libraries are always loaded. See also "Custom Filters and extensions".
+- {% load %} - is actually a no-op in Coffin, since templatetag
+  libraries are always loaded. See also "Custom Filters and extensions".
 
-    - {% spaceless %}
+- {% spaceless %}
 
-    - {% url %} - additionally, a ``"view"|url()`` filter is also
-      available.
+- {% url %} - additionally, a ``"view"|url()`` filter is also
+  available.
 
-    - {% with %}
+- {% with %}
 
 Django filters that are ported in Coffin:
 
-    - date
-    - floatformat
-    - pluralize (expects an optional second parameter rather than the
-      comma syntax)
-    - time
-    - timesince
-    - timeuntil,
-    - truncatewords
-    - truncatewords_html
+- date
+- floatformat
+- pluralize (expects an optional second parameter rather than the
+  comma syntax)
+- time
+- timesince
+- timeuntil
+- truncatewords
+- truncatewords_html
 
 The template-related functionality of the following contrib modules has
 been ported in Coffin: 
 
-    - ``coffin.contrib.markup``
-    - ``coffin.contrib.syndication``.
-    
+- ``coffin.contrib.markup``
+- ``coffin.contrib.syndication``.
 
-== Rendering ==
+Rendering
+=========
 
-Simply use the ``render_to_response`` replacement provided by coffin:
+Simply use the ``render_to_response`` replacement provided by coffin::
 
     from coffin.shortcuts import render_to_response
     render_to_response('template.html', {'var': 1})
@@ -51,19 +53,21 @@ This will render ``template.html`` using Jinja2, and returns a
 ``HttpResponse``.
 
 
-== 404 and 500 handlers ==
+404 and 500 handlers
+====================
 
 To have your HTTP 404 and 500 template rendered using Jinja, replace the
-line
+line::
 
     from django.conf.urls.defaults import *
 
-in your ``urls.py`` (it should be there by default), with
+in your ``urls.py`` (it should be there by default), with::
 
     from coffin.conf.urls.defaults import *
 
 
-== Custom filters and extensions ==
+Custom filters and extensions
+=============================
 
 Coffin uses the same templatetag library approach as Django, meaning
 your app has a ``templatetags`` directory, and each of it's modules
@@ -76,7 +80,7 @@ Coffin can automatically make your existing Django filters usable in
 Jinja, but not your custom tags - you need to rewrite those as Jinja
 extensions manually.
 
-Example for a Jinja-enabled template library:
+Example for a Jinja-enabled template library::
 
     from coffin import template
     register = template.Library()
@@ -84,9 +88,10 @@ Example for a Jinja-enabled template library:
     register.filter('plenk', plenk)   # Filter for both Django and Jinja
     register.tag('foo', do_foo)       # Django version of the tag
     register.tag(FooExtension)        # Jinja version of the tag
+    register.object(my_function_name) # A global function/object
 
-
-== Other things of note ==
+Other things of note
+====================
 
 When porting Django functionality, Coffin currently tries to avoid
 Django's silent-errors approach, instead opting to be explicit. Django was
@@ -94,9 +99,9 @@ discussing the same thing before it's 1.0 release (*), but was constrained
 by backwards-compatibility  concerns. However, if you are converting your
 templates anyway, it might be a good opportunity for this change.
 
-    (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e
+(*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e
 
-Jinja2's ``TemplateSyntaxError``s (and potentially other exception types)
+Jinja2's ``TemplateSyntaxError`` (and potentially other exception types)
 are not compatible with Django's own template exceptions with respect to
 the TEMPLATE_DEBUG facility. If TEMPLATE_DEBUG is enabled and Jinja2 raises
 an exception, Django's error 500 page will sometimes not be able to handle
@@ -119,46 +124,48 @@ A Jinja2-enabled version of ``add_to_builtins`` can be found in the
 ``django.template`` namespace.
 
 
-== Things not supported by Coffin ==
+Things not supported by Coffin
+==============================
 
 These is an incomplete list things that Coffin does not yet and possibly
 never will, requiring manual changes on your part:
 
-    * The ``slice`` filter works differently in Jinja2 and Django.
-      Replace it with Jinja's slice syntax: ``x[0:1]``.
+- The ``slice`` filter works differently in Jinja2 and Django.
+  Replace it with Jinja's slice syntax: ``x[0:1]``.
 
-    * Jinja2's ``default`` filter by itself only tests the variable for
-      **existance**. To match Django's behaviour, you need to pass ``True``
-      as the second argument, so that it will also provide the default
-      value for things that are defined but evalute to ``False``
+- Jinja2's ``default`` filter by itself only tests the variable for
+  **existance**. To match Django's behaviour, you need to pass ``True``
+  as the second argument, so that it will also provide the default
+  value for things that are defined but evalute to ``False``
 
-    * Jinja2's loop variable is called ``loop``, but Django's ``forloop``.
+- Jinja2's loop variable is called ``loop``, but Django's ``forloop``.
 
-    * Implementing an equivalent to Django's cycle-tag might be difficult,
-      see also Django tickets #5908 and #7501. Jinja's own facilities
-      are the ``forloop.cycle()`` function and the global function
-      ``cycler``.
+- Implementing an equivalent to Django's cycle-tag might be difficult,
+  see also Django tickets #5908 and #7501. Jinja's own facilities
+  are the ``forloop.cycle()`` function and the global function
+  ``cycler``.
 
-    * The ``add`` filter might not be worth being implemented. ``{{x+y}} ``
-      is a pretty basic feature of Jinja2, and could almost be lumped
-      together with the other Django->Jinja2 syntax changes.
+- The ``add`` filter might not be worth being implemented. ``{{ x+y }}``
+  is a pretty basic feature of Jinja2, and could almost be lumped
+  together with the other Django->Jinja2 syntax changes.
 
-    * Django-type safe strings passed through the context are not converted
-      and therefore not recognized by Jinja2. For example, a notable place
-      were this would occur is the HTML generation of Django Forms.
+- Django-type safe strings passed through the context are not converted
+  and therefore not recognized by Jinja2. For example, a notable place
+  were this would occur is the HTML generation of Django Forms.
 
-    * The {% autoescape %} tag is immensily difficult to port and currently
-      not supported.
+- The {% autoescape %} tag is immensily difficult to port and currently
+  not supported.
       
-    * Literal strings from within a template are not automatically 
-      considered  "safe" by Jinja2, different from Django. According to 
-      Armin Ronacher, this is a design limitation that will not be changed,
-      due to many Python builtin functions and methods, whichyou are free
-      to use in Jinja2, expecting raw, untainted strings and thus not being 
-      able to work with Jinja2's ``Markup`` string.
+- Literal strings from within a template are not automatically 
+  considered  "safe" by Jinja2, different from Django. According to 
+  Armin Ronacher, this is a design limitation that will not be changed,
+  due to many Python builtin functions and methods, whichyou are free
+  to use in Jinja2, expecting raw, untainted strings and thus not being 
+  able to work with Jinja2's ``Markup`` string.
 
 
-== Running the tests ==
+Running the tests
+====================
 
 Use the nose framework:
 
