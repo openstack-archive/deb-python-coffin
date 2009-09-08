@@ -2,7 +2,7 @@
 Coffin
 ~~~~~~
 
-`Coffin <https://launchpad.net/coffin/>` is a package that resolves the
+`Coffin <http://www.github.com/dcramer/coffin>` is a package that resolves the
 impedance mismatch between `Django <http://www.djangoproject.com/>` and `Jinja2
 <http://jinja.pocoo.org/2/>` through various adapters. The aim is to use Coffin
 as a drop-in replacement for Django's template system to whatever extent is
