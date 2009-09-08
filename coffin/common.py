@@ -4,20 +4,16 @@ import warnings
 from django import dispatch
 from jinja2 import Environment, loaders
 
-
 __all__ = ('get_env', 'need_env')
-
 
 _ENV = None
 _LOADERS = [] # See :fun:`_infer_loaders`.
 _TEMPLATE_LIBS = []
 _JINJA_I18N_EXTENSION_NAME = 'jinja2.ext.i18n'
 
-
 need_env = dispatch.Signal(providing_args=['arguments', 'loaders',
-                                           'filters', 'extensions'])
-
-
+                                           'filters', 'extensions',
+                                           'globals'])
 def _get_loaders():
     """Tries to translate each template loader given in the Django settings
     (:mod:`django.settings`) to a similarly-behaving Jinja loader.
@@ -26,6 +22,8 @@ def _get_loaders():
     settings.
     """
     from coffin.template.loaders import jinja_loader_from_django_loader
+    global _LOADERS
+    
     if _LOADERS:
         return _LOADERS
     from django.conf import settings
@@ -47,6 +45,8 @@ def _get_templatelibs():
     Since we cannot support the {% load %} tag in Jinja, we have to
     register all libraries globally.
     """
+    global _TEMPLATE_LIBS
+    
     if _TEMPLATE_LIBS:
         return _TEMPLATE_LIBS
 
@@ -72,75 +72,16 @@ def _get_templatelibs():
                         pass
     return _TEMPLATE_LIBS
 
-
-def _get_filters():
-    """Returns a list of filters to provide through Jinja. This includes
-    ported versions of Django's builtin filters that Jinja is lacking,
-    as well as custom filters as specified by the user in the settings.
-
-    :return: A mapping of names to filters.
-    """
-    from django.conf import settings
-    from coffin.template import builtins
-
-    filters = {}
-    # start with our default builtins
-    for lib in builtins:
-        if hasattr(lib, 'jinja2_filters'):
-            filters.update(lib.jinja2_filters)
-
-    # add the globally defined filter list
-    user = getattr(settings, 'JINJA2_FILTERS', {})
-    from django.core.urlresolvers import get_callable
-    if isinstance(user, dict):
-        for key, value in user.items():
-            filters[user] = callable(value) and value or get_callable(value)
-    else:
-        for value in user:
-            value = callable(value) and value or get_callable(value)
-            filters[value.__name__] = value
-
-    # add filters defined in application's templatetag libraries
-    for lib in _get_templatelibs():
-        if hasattr(lib, 'jinja2_filters'):
-            filters.update(lib.jinja2_filters)
-
-    return filters
-
-
-def _get_extensions():
-    from django.conf import settings
-    from coffin.template import builtins
-
-    extensions = []
-    # start with our default builtins
-    for lib in builtins:
-        if hasattr(lib, 'jinja2_extensions'):
-            extensions += lib.jinja2_extensions
-
-    if settings.USE_I18N:
-        extensions.append(_JINJA_I18N_EXTENSION_NAME)
-
-    # add the globally defined extension list
-    extensions += list(getattr(settings, 'JINJA2_EXTENSIONS', []))
-
-    # add extensions defined in application's templatetag libraries
-    for lib in _get_templatelibs():
-        if hasattr(lib, 'jinja2_extensions'):
-            extensions += lib.jinja2_extensions
-
-    return extensions
-
-
 def _get_all_extensions():
+    # TODO: should these be cached as well?
     from django.conf import settings
     from coffin.template import builtins
     from django.core.urlresolvers import get_callable
 
     extensions, filters, globals = [], {}, {}
+
     # start with our default builtins
     for lib in builtins:
-        
         extensions.extend(getattr(lib, 'jinja2_extensions', []))
         filters.update(getattr(lib, 'jinja2_filters', {}))
         globals.update(getattr(lib, 'jinja2_globals', {}))
@@ -149,7 +90,7 @@ def _get_all_extensions():
         extensions.append(_JINJA_I18N_EXTENSION_NAME)
 
     # add the globally defined extension list
-    extensions += list(getattr(settings, 'JINJA2_EXTENSIONS', []))
+    extensions.extend(list(getattr(settings, 'JINJA2_EXTENSIONS', [])))
 
     user = getattr(settings, 'JINJA2_FILTERS', {})
     if isinstance(user, dict):
@@ -182,6 +123,7 @@ def get_env():
     :return: A Jinja2 environment singleton.
     """
     global _ENV
+
     if not _ENV:
         loaders_ = _get_loaders()
         extensions, filters, globals = _get_all_extensions()
