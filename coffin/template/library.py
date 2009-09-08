@@ -85,7 +85,7 @@ class Library(DjangoLibrary):
             else:
                 # @register.filter('somename') or @register.filter(name='somename')
                 def dec(func):
-                    return self.object(name, func, jinja2_only=jinja2_only)
+                    return self.object(name, func)
                 return dec
         elif name != None and func != None:
             # register.filter('somename', somefunc)
