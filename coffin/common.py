@@ -152,7 +152,7 @@ def _get_all_extensions():
 
     user = getattr(settings, 'JINJA2_FILTERS', {})
     if isinstance(user, dict):
-        for key, value in useriter.items():
+        for key, value in user.iteritems():
             filters[user] = callable(value) and value or get_callable(value)
     else:
         for value in user:
