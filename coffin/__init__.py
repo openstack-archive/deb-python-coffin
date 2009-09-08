@@ -13,25 +13,21 @@ reasonable.
 """
 
 
-__all__ = ('__version__', '__docformat__', 'get_revision')
+__all__ = ('__version__', '__build__', '__docformat__', 'get_revision')
 __version__ = (0, 2)
 __docformat__ = 'restructuredtext en'
 
-
 import os
 
-
-def _get_bzr_revision(bzr_dir):
-    revision_file = os.path.join(bzr_dir, 'branch', 'last-revision')
+def _get_git_revision(path):
+    revision_file = os.path.join(path, 'refs', 'heads', 'master')
     if not os.path.exists(revision_file):
         return None
     fh = open(revision_file, 'r')
     try:
-        revno = fh.read().split(None, 1)[0] # Assumes file starts with revno.
-        return int(revno)
+        return fh.read()
     finally:
         fh.close()
-
 
 def get_revision():
     """
@@ -40,7 +36,9 @@ def get_revision():
     """
     package_dir = os.path.dirname(__file__)
     checkout_dir = os.path.normpath(os.path.join(package_dir, '..'))
-    bzr_dir = os.path.join(checkout_dir, '.bzr')
-    if os.path.exists(bzr_dir):
-        return _get_bzr_revision(bzr_dir)
+    path = os.path.join(checkout_dir, '.git')
+    if os.path.exists(path):
+        return _get_git_revision(path)
     return None
+
+__build__ = get_revision()
