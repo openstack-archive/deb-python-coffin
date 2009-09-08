@@ -140,6 +140,7 @@ def _get_all_extensions():
     extensions, filters, globals = [], {}, {}
     # start with our default builtins
     for lib in builtins:
+        
         extensions.extend(getattr(lib, 'jinja2_extensions', []))
         filters.update(getattr(lib, 'jinja2_filters', {}))
         globals.update(getattr(lib, 'jinja2_globals', {}))
@@ -167,6 +168,7 @@ def _get_all_extensions():
         for value in user:
             value = callable(value) and value or get_callable(value)
             globals[value.__name__] = value
+
     # add extensions defined in application's templatetag libraries
     for lib in _get_templatelibs():
         extensions.extend(getattr(lib, 'jinja2_extensions', []))
@@ -182,7 +184,7 @@ def get_env():
     global _ENV
     if not _ENV:
         loaders_ = _get_loaders()
-        filters, extensions, globals = _get_all_extensions()
+        extensions, filters, globals = _get_all_extensions()
         arguments = {
             'autoescape': True,
         }
