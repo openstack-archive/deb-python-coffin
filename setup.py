@@ -11,6 +11,6 @@ setup(name='Coffin',
     maintainer='David Cramer',
     maintainer_email='dcramer@gmail.com',
     url='http://github.com/dcramer/coffin',
-    packages=find_packages('coffin'),
+    packages=find_packages(),
     install_requires=['Jinja2', 'django>=1.0'],
 )
