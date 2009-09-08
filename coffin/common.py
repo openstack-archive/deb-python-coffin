@@ -132,6 +132,49 @@ def _get_extensions():
     return extensions
 
 
+def _get_all_extensions():
+    from django.conf import settings
+    from coffin.template import builtins
+    from django.core.urlresolvers import get_callable
+
+    extensions, filters, globals = [], {}, {}
+    # start with our default builtins
+    for lib in builtins:
+        extensions.extend(getattr(lib, 'jinja2_extensions', []))
+        filters.update(getattr(lib, 'jinja2_filters', {}))
+        globals.update(getattr(lib, 'jinja2_globals', {}))
+
+    if settings.USE_I18N:
+        extensions.append(_JINJA_I18N_EXTENSION_NAME)
+
+    # add the globally defined extension list
+    extensions += list(getattr(settings, 'JINJA2_EXTENSIONS', []))
+
+    user = getattr(settings, 'JINJA2_FILTERS', {})
+    if isinstance(user, dict):
+        for key, value in useriter.items():
+            filters[user] = callable(value) and value or get_callable(value)
+    else:
+        for value in user:
+            value = callable(value) and value or get_callable(value)
+            filters[value.__name__] = value
+
+    user = getattr(settings, 'JINJA2_GLOBALS', {})
+    if isinstance(user, dict):
+        for key, value in user.iteritems():
+            globals[user] = callable(value) and value or get_callable(value)
+    else:
+        for value in user:
+            value = callable(value) and value or get_callable(value)
+            globals[value.__name__] = value
+    # add extensions defined in application's templatetag libraries
+    for lib in _get_templatelibs():
+        extensions.extend(getattr(lib, 'jinja2_extensions', []))
+        filters.update(getattr(lib, 'jinja2_filters', {}))
+        globals.update(getattr(lib, 'jinja2_globals', {}))
+
+    return extensions, filters, globals
+
 def get_env():
     """
     :return: A Jinja2 environment singleton.
@@ -139,15 +182,14 @@ def get_env():
     global _ENV
     if not _ENV:
         loaders_ = _get_loaders()
-        filters = _get_filters()
-        extensions = _get_extensions()
+        filters, extensions, globals = _get_all_extensions()
         arguments = {
             'autoescape': True,
         }
 
         need_env.send(sender=Environment, arguments=arguments,
                       loaders=loaders_, extensions=extensions,
-                      filters=filters)
+                      filters=filters, globals=globals)
 
         if not _ENV:
             if not 'loader' in arguments:
@@ -157,6 +199,7 @@ def get_env():
 
             _ENV = Environment(**arguments)
             _ENV.filters.update(filters)
+            _ENV.globals.update(globals)
             from coffin.template import Template as CoffinTemplate
             _ENV.template_class = CoffinTemplate
     return _ENV
