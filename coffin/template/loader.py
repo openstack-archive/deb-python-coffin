@@ -62,4 +62,4 @@ def select_template(template_name_list):
         except TemplateNotFound:
             continue
     # If we get here, none of the templates could be loaded
-    raise TemplateNotFound, ', '.join(template_name_list)
+    raise TemplateNotFound(', '.join(template_name_list))

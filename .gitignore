@@ -3,3 +3,4 @@
 .bzr*
 Coffin.egg-info
 /dist
+.*.swp
