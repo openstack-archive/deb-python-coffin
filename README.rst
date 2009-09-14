@@ -89,6 +89,7 @@ Example for a Jinja-enabled template library::
     register.tag('foo', do_foo)       # Django version of the tag
     register.tag(FooExtension)        # Jinja version of the tag
     register.object(my_function_name) # A global function/object
+    register.test(my_test_name)       # A test function
 
 Other things of note
 ====================
