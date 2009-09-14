@@ -1,4 +1,4 @@
-from coffin.common import get_env
+from coffin.common import env
 from django.template import Template, Context
 
 
@@ -12,7 +12,7 @@ def test_markup():
     # Note that we do not assert the result - if markdown is not installed,
     # the filter will just return the input text. We don't care, we simple
     # want to check the filter is available.
-    get_env().from_string('{{ "**Title**"|markdown }}').render()  # '\n<p><strong>Title</strong>\n</p>\n\n\n'
+    env.from_string('{{ "**Title**"|markdown }}').render()  # '\n<p><strong>Title</strong>\n</p>\n\n\n'
     Template('{{ "**Title**"|markdown }}').render(Context())
 
 

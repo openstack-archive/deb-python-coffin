@@ -4,7 +4,6 @@ The module provides a generic way to load templates from an arbitrary
 backend storage (e.g. filesystem, database).
 """
 
-from coffin.common import get_env
 from coffin.template import Template as CoffinTemplate
 from jinja2 import TemplateNotFound
 
@@ -19,9 +18,10 @@ def find_template_source(name, dirs=None):
 
 
 def get_template(template_name):
-    # Jinja will handle this for us, and get_env() also initializes
+    # Jinja will handle this for us, and env also initializes
     # the loader backends the first time it is called.
-    return get_env().get_template(template_name)
+    from coffin.common import env
+    return env.get_template(template_name)
 
 
 def get_template_from_string(source):
@@ -29,7 +29,8 @@ def get_template_from_string(source):
     Does not support then ``name`` and ``origin`` parameters from
     the Django version.
     """
-    return get_env().from_string(source)
+    from coffin.common import env
+    return env.from_string(source)
 
 
 def render_to_string(template_name, dictionary=None, context_instance=None):

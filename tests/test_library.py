@@ -3,7 +3,7 @@
 
 from nose.tools import assert_raises
 
-from coffin.common import get_env
+from coffin.common import env
 from jinja2 import TemplateAssertionError as Jinja2TemplateAssertionError
 from django.template import Template, Context, \
     TemplateSyntaxError as DjangoTemplateSyntaxError
@@ -12,8 +12,6 @@ from django.template import Template, Context, \
 def test_nodes_and_extensions():
     """Test availability of registered nodes/extensions.
     """
-    env = get_env()
-
     # Jinja2 extensions, loaded from a Coffin library
     assert env.from_string('a{% foo %}b').render() == 'a{foo}b'
 
@@ -24,8 +22,6 @@ def test_nodes_and_extensions():
 def test_filters():
     """Test availability of registered filters.
     """
-    env = get_env()
-
     # Filter registered with a Coffin library is available in Django and Jinja2
     assert env.from_string('a{{ "b"|foo }}c').render() == 'a{foo}c'
     assert Template('{% load foo_filter %}a{{ "b"|foo }}c').render(Context()) == 'a{foo}c'
@@ -57,9 +53,7 @@ def test_filters():
 def test_filter_compat_safestrings():
     """Test filter compatibility layer with respect to safe strings.
     """
-    env = get_env()
     env.autoescape = True
-
 
     # Jinja-style safe output strings are considered "safe" by both engines
     assert env.from_string('{{ "<b>"|jinja_safe_output }}').render() == '<b>'
@@ -82,7 +76,6 @@ def test_filter_compat_escapetrings():
     """Test filter compatibility layer with respect to strings flagged as
     "wanted for escaping".
     """
-    env = get_env()
     env.autoescape = False
 
     # Django-style "force escaping" works in both engines
@@ -93,8 +86,6 @@ def test_filter_compat_escapetrings():
 def test_filter_compat_other():
     """Test other features of the filter compatibility layer.
     """
-    env = get_env()
-
     # A Django filter with @needs_autoescape works in Jinja2
     env.autoescape = True
     assert env.from_string('{{ "b"|needing_autoescape }}').render() == 'True'

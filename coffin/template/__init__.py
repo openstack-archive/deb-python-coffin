@@ -3,7 +3,6 @@ from django.template import (
     add_to_builtins as django_add_to_builtins,
     get_library)
 from jinja2 import Template as _Jinja2Template
-from coffin.common import get_env
 
 # Merge with ``django.template``.
 from django.template import __all__
@@ -29,8 +28,9 @@ class Template(_Jinja2Template):
         # We accept the "origin" and "name" arguments, but discard them
         # right away - Jinja's Template class (apparently) stores no
         # equivalent information.
+        from coffin.common import env
 
-        return get_env().from_string(template_string, template_class=cls)
+        return env.from_string(template_string, template_class=cls)
 
     def __iter__(self):
         # TODO: Django allows iterating over the templates nodes. Should

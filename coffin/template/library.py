@@ -53,6 +53,7 @@ class Library(DjangoLibrary):
         self.jinja2_filters = {}
         self.jinja2_extensions = []
         self.jinja2_globals = {}
+        self.jinja2_tests = {}
 
     @classmethod
     def from_django(cls, django_library):
@@ -70,25 +71,50 @@ class Library(DjangoLibrary):
             result._register_filter(name, func, jinja2_only=True)
         return result
 
+    def test(self, name=None, func=None):
+        def inner(f):
+            name = getattr(f, "_decorated_function", f).__name__
+            self.jinja2_tests[name] = f
+            return f
+        if name == None and func == None:
+            # @register.test()
+            return inner
+        elif func == None:
+            if (callable(name)):
+                # register.test()
+                return inner(name)
+            else:
+                # @register.test('somename') or @register.test(name='somename')
+                def dec(func):
+                    return self.test(name, func)
+                return dec
+        elif name != None and func != None:
+            # register.filter('somename', somefunc)
+            self.jinja2_tests[name] = func
+            return func
+        else:
+            raise InvalidTemplateLibrary("Unsupported arguments to "
+                "Library.test: (%r, %r)", (name, func))
+
     def object(self, name=None, func=None):
         def inner(f):
             name = getattr(f, "_decorated_function", f).__name__
             self.jinja2_globals[name] = f
             return f
         if name == None and func == None:
-            # @register.filter()
+            # @register.object()
             return inner
         elif func == None:
             if (callable(name)):
-                # @register.filter
+                # register.object()
                 return inner(name)
             else:
-                # @register.filter('somename') or @register.filter(name='somename')
+                # @register.object('somename') or @register.object(name='somename')
                 def dec(func):
                     return self.object(name, func)
                 return dec
         elif name != None and func != None:
-            # register.filter('somename', somefunc)
+            # register.object('somename', somefunc)
             self.jinja2_globals[name] = func
             return func
         else:

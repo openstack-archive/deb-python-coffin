@@ -7,12 +7,11 @@
 
 def test_template_class():
     from coffin.template import Template
-    from coffin.common import get_env
 
     # initializing a template directly uses Coffin's Jinja
     # environment - we know it does if our tags are available.
     t = Template('{% spaceless %}{{ ""|truncatewords }}{% endspaceless %}')
-    assert t.environment == get_env()
+    assert t.environment == env
 
     # render can accept a Django context object
     from django.template import Context

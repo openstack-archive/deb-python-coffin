@@ -1,10 +1,10 @@
 from datetime import datetime, date
 from nose.tools import assert_raises
-from coffin.common import get_env
+from coffin.common import env
 
 
 def r(s, context={}):
-    return get_env().from_string(s).render(context)
+    return env.from_string(s).render(context)
 
 
 def test_url():
@@ -51,4 +51,4 @@ def test_date_stuff():
         assert r('a{{ d|%s }}b' % f) == 'ab'
         assert r('a{{ d|%s }}b' % f, {'d': None}) == 'ab'
         # given an empty string though (wrong type), an error would be raced
-        assert_raises(Exception, get_env().from_string('a{{ d|%s }}b' % f).render, {'d': ''})
+        assert_raises(Exception, env.from_string('a{{ d|%s }}b' % f).render, {'d': ''})
