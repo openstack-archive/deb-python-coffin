@@ -55,7 +55,7 @@ def _get_templatelibs():
 
     for a in settings.INSTALLED_APPS:
         try:
-            path = __import__(a + '.templatetags', {}, {}, ['']).__file__
+            path = __import__(a + '.templatetags', {}, {}, ['__file__']).__file__
             path = os.path.dirname(path)  # we now have the templatetags/ directory
         except ImportError:
             pass
