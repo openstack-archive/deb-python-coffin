@@ -13,4 +13,11 @@ setup(name='Coffin',
     url='http://github.com/dcramer/coffin',
     packages=find_packages(),
     install_requires=['Jinja2', 'django>=1.0'],
+    classifiers=[
+        "Framework :: Django",
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
+        "Operating System :: OS Independent",
+        "Topic :: Software Development"
+    ],
 )
