@@ -99,9 +99,9 @@ You may also define additional extensions, filters, tests, and globas via your `
     JINJA2_TESTS = {
         'test_name': 'path.to.mytest',
     }
-    JINJA2_EXTENSIONS = {
+    JINJA2_EXTENSIONS = (
         'jinja2.ext.do',
-    }
+    )
 
 Other things of note
 ====================
