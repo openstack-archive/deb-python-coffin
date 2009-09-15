@@ -91,6 +91,18 @@ Example for a Jinja-enabled template library::
     register.object(my_function_name) # A global function/object
     register.test(my_test_name)       # A test function
 
+You may also define additional extensions, filters, tests, and globas via your ``settings.py``::
+
+    JINJA2_FILTERS = (
+        'path.to.myfilter',
+    )
+    JINJA2_TESTS = {
+        'test_name': 'path.to.mytest',
+    }
+    JINJA2_EXTENSIONS = {
+        'jinja2.ext.do',
+    }
+
 Other things of note
 ====================
 
@@ -124,6 +136,13 @@ object uses.
 A Jinja2-enabled version of ``add_to_builtins`` can be found in the
 ``django.template`` namespace.
 
+You may specify additional arguments to send to the ``Environment`` via ``JINJA2_ENVIRONMENT_OPTIONS``::
+
+    from jinja2 import StrictUndefined
+    JINJA2_ENVIRONMENT_OPTIONS = {
+        'autoescape': False,
+        'undefined': StrictUndefined,
+    }
 
 Things not supported by Coffin
 ==============================

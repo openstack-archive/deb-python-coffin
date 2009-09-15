@@ -143,6 +143,12 @@ def get_env():
     # need_env.send(sender=Environment, arguments=arguments,
     #                       loaders=loaders_, extensions=extensions,
     #                       filters=filters, tests=tests, globals=globals)
-    return CoffinEnvironment(autoescape=True)
+    from django.conf import settings
+    
+    kwargs = {
+        'autoescape': True,
+    }
+    kwargs.update(getattr(settings, 'JINJA2_ENVIRONMENT_OPTIONS', {}))
+    return CoffinEnvironment(**kwargs)
 
 env = get_env()
