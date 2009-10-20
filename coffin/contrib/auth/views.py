@@ -2,6 +2,9 @@ import inspect
 
 from django.contrib.auth.views import *
 
+# XXX: maybe approach this as importing the entire model, and doing string replacements
+# on the template and shortcut import lines?
+
 from coffin.shortcuts import render_to_response
 from coffin.template import RequestContext, loader
 
