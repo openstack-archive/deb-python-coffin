@@ -111,7 +111,7 @@ class CoffinEnvironment(Environment):
             setting = getattr(settings, setting, {})
             if isinstance(setting, dict):
                 for key, value in setting.iteritems():
-                    retval[user] = callable(value) and value or get_callable(value)
+                    retval[key] = callable(value) and value or get_callable(value)
             else:
                 for value in setting:
                     value = callable(value) and value or get_callable(value)
