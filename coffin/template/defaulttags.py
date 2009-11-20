@@ -219,19 +219,19 @@ class WithExtension(Extension):
 
     def parse(self, parser):
         lineno = parser.stream.next().lineno
-
         value = parser.parse_expression()
         parser.stream.expect('name:as')
         name = parser.stream.expect('name')
-
         body = parser.parse_statements(['name:endwith'], drop_needle=True)
+        # Use a local variable instead of a macro argument to alias  
+        # the expression.  This allows us to nest "with" statements.
+        body.insert(0, nodes.Assign(nodes.Name(name.value, 'store'), value))
         return nodes.CallBlock(
-                self.call_method('_render_block', args=[value]),
-                [nodes.Name(name.value, 'store')], [], body).\
+                self.call_method('_render_block'), [], [], body).\
                     set_lineno(lineno)
-
-    def _render_block(self, value, caller=None):
-        return caller(value)
+        
+    def _render_block(self, caller=None):
+        return caller()
 
 
 class CacheExtension(Extension):
