@@ -319,7 +319,7 @@ class CacheExtension(Extension):
                 'timeout value: %r' % (list(self.tags)[0], expire_time), lineno)
 
         args_string = u':'.join([urlquote(v) for v in vary_on])
-        args_md5 = md5_constructor(arg_string)
+        args_md5 = md5_constructor(args_string)
         cache_key = 'template.cache.%s.%s' % (fragm_name, args_md5.hexdigest())
         value = cache.get(cache_key)
         if value is None:
