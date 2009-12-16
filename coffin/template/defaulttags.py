@@ -15,7 +15,6 @@ class LoadExtension(Extension):
     parser instance needs to be modified, but apparently the only way to
     get access would be by hacking the stack.
     """
-    import pdb;pdb.set_trace()
     tags = set(['load'])
 
     def parse(self, parser):
