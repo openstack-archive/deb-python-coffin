@@ -15,7 +15,6 @@ class LoadExtension(Extension):
     parser instance needs to be modified, but apparently the only way to
     get access would be by hacking the stack.
     """
-
     tags = set(['load'])
 
     def parse(self, parser):
@@ -311,14 +310,17 @@ class CacheExtension(Extension):
     def _cache_support(self, expire_time, fragm_name, vary_on, lineno, caller):
         from django.core.cache import cache   # delay depending in settings
         from django.utils.http import urlquote
-
+        from django.utils.hashcompat import md5_constructor
+        
         try:
             expire_time = int(expire_time)
         except (ValueError, TypeError):
             raise TemplateSyntaxError('"%s" tag got a non-integer '
                 'timeout value: %r' % (list(self.tags)[0], expire_time), lineno)
 
-        cache_key = u':'.join([fragm_name] + [urlquote(v) for v in vary_on])
+        args_string = u':'.join([urlquote(v) for v in vary_on])
+        args_md5 = md5_constructor(args_string)
+        cache_key = 'template.cache.%s.%s' % (fragm_name, args_md5.hexdigest())
         value = cache.get(cache_key)
         if value is None:
             value = caller()
