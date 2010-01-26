@@ -75,8 +75,10 @@ class CoffinEnvironment(Environment):
                     if f.endswith('.py'):
                         try:
                             # TODO: will need updating when #6587 lands
-                            libs.append(get_library(
-                                "django.templatetags.%s" % os.path.splitext(f)[0]))
+                            # libs.append(get_library(
+                            #     "django.templatetags.%s" % os.path.splitext(f)[0]))
+                            libs.append(get_library(os.path.splitext(f)[0]))
+                            
                         except InvalidTemplateLibrary:
                             pass
         return libs
