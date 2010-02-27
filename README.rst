@@ -36,10 +36,14 @@ Django filters that are ported in Coffin:
 - truncatewords_html
 
 The template-related functionality of the following contrib modules has
-been ported in Coffin: 
+been ported in Coffin:
 
 - ``coffin.contrib.markup``
 - ``coffin.contrib.syndication``.
+
+Jinja 2's ``i18n`` extension is hooked up with Django, and a custom version
+of makemessages supports string extraction from both Jinja2 and Django
+templates.
 
 Rendering
 =========
@@ -125,7 +129,7 @@ information.
 ``coffin.template.loader`` is a port of ``django.template.loader`` and
 comes with a Jinja2-enabled version of ``get_template()``.
 
-``coffin.template.Template`` is a Jinja2-Template that supports the 
+``coffin.template.Template`` is a Jinja2-Template that supports the
 Django render interface (being passed an instance of Context), and uses
 Coffin's global Jinja2 environment.
 
@@ -175,12 +179,12 @@ never will, requiring manual changes on your part:
 
 - The {% autoescape %} tag is immensily difficult to port and currently
   not supported.
-      
-- Literal strings from within a template are not automatically 
-  considered  "safe" by Jinja2, different from Django. According to 
+
+- Literal strings from within a template are not automatically
+  considered  "safe" by Jinja2, different from Django. According to
   Armin Ronacher, this is a design limitation that will not be changed,
   due to many Python builtin functions and methods, whichyou are free
-  to use in Jinja2, expecting raw, untainted strings and thus not being 
+  to use in Jinja2, expecting raw, untainted strings and thus not being
   able to work with Jinja2's ``Markup`` string.
 
 
