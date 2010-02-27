@@ -4,16 +4,11 @@ import warnings
 from django import dispatch
 from jinja2 import Environment, loaders
 
-__all__ = ('env', 'need_env')
+__all__ = ('env',)
 
 env = None
 
 _JINJA_I18N_EXTENSION_NAME = 'jinja2.ext.i18n'
-
-# TODO: This should be documented (as even I'm not sure where it's use-case is)
-need_env = dispatch.Signal(providing_args=['arguments', 'loaders',
-                                           'filters', 'extensions',
-                                           'globals', 'tests'])
 
 class CoffinEnvironment(Environment):
     def __init__(self, filters={}, globals={}, tests={}, loader=None, extensions=[], **kwargs):
@@ -80,8 +75,10 @@ class CoffinEnvironment(Environment):
                     if f.endswith('.py'):
                         try:
                             # TODO: will need updating when #6587 lands
-                            libs.append(get_library(
-                                "django.templatetags.%s" % os.path.splitext(f)[0]))
+                            # libs.append(get_library(
+                            #     "django.templatetags.%s" % os.path.splitext(f)[0]))
+                            libs.append(get_library(os.path.splitext(f)[0]))
+                            
                         except InvalidTemplateLibrary:
                             pass
         return libs
@@ -111,7 +108,7 @@ class CoffinEnvironment(Environment):
             setting = getattr(settings, setting, {})
             if isinstance(setting, dict):
                 for key, value in setting.iteritems():
-                    retval[user] = callable(value) and value or get_callable(value)
+                    retval[key] = callable(value) and value or get_callable(value)
             else:
                 for value in setting:
                     value = callable(value) and value or get_callable(value)
@@ -140,9 +137,6 @@ def get_env():
     """
     :return: A Jinja2 environment singleton.
     """
-    # need_env.send(sender=Environment, arguments=arguments,
-    #                       loaders=loaders_, extensions=extensions,
-    #                       filters=filters, tests=tests, globals=globals)
     from django.conf import settings
 
     kwargs = {

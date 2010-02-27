@@ -1,7 +1,7 @@
 from django.template import (
     Context as DjangoContext,
     add_to_builtins as django_add_to_builtins,
-    get_library)
+    import_library)
 from jinja2 import Template as _Jinja2Template
 
 # Merge with ``django.template``.
@@ -85,7 +85,7 @@ def add_to_builtins(module_name):
     Library object is compatible, remember!? We can just add them
     directly to Django's own list of builtins.
     """
-    builtins.append(get_library(module_name))
+    builtins.append(import_library(module_name))
     django_add_to_builtins(module_name)
 
 

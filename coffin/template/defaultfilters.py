@@ -15,20 +15,18 @@ def url(view_name, *args, **kwargs):
     return url._reverse(view_name, args, kwargs)
 
 @register.filter(jinja2_only=True)
-def timesince(value, arg=None):
+def timesince(value, *arg):
     if value is None or isinstance(value, Undefined):
         return u''
     from django.utils.timesince import timesince
-    if arg:
-        return timesince(value, arg)
-    return timesince(value)
+    return timesince(value, *arg)
 
 @register.filter(jinja2_only=True)
-def timeuntil(value, arg=None):
+def timeuntil(value, *args):
     if value is None or isinstance(value, Undefined):
         return u''
     from django.utils.timesince import timeuntil
-    return timeuntil(date, arg)
+    return timeuntil(value, *args)
 
 @register.filter(jinja2_only=True)
 def date(value, arg=None):

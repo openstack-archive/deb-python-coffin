@@ -15,7 +15,6 @@ class LoadExtension(Extension):
     parser instance needs to be modified, but apparently the only way to
     get access would be by hacking the stack.
     """
-
     tags = set(['load'])
 
     def parse(self, parser):
@@ -219,19 +218,19 @@ class WithExtension(Extension):
 
     def parse(self, parser):
         lineno = parser.stream.next().lineno
-
         value = parser.parse_expression()
         parser.stream.expect('name:as')
         name = parser.stream.expect('name')
-
         body = parser.parse_statements(['name:endwith'], drop_needle=True)
+        # Use a local variable instead of a macro argument to alias  
+        # the expression.  This allows us to nest "with" statements.
+        body.insert(0, nodes.Assign(nodes.Name(name.value, 'store'), value))
         return nodes.CallBlock(
-                self.call_method('_render_block', args=[value]),
-                [nodes.Name(name.value, 'store')], [], body).\
+                self.call_method('_render_block'), [], [], body).\
                     set_lineno(lineno)
-
-    def _render_block(self, value, caller=None):
-        return caller(value)
+        
+    def _render_block(self, caller=None):
+        return caller()
 
 
 class CacheExtension(Extension):
@@ -311,14 +310,17 @@ class CacheExtension(Extension):
     def _cache_support(self, expire_time, fragm_name, vary_on, lineno, caller):
         from django.core.cache import cache   # delay depending in settings
         from django.utils.http import urlquote
-
+        from django.utils.hashcompat import md5_constructor
+        
         try:
             expire_time = int(expire_time)
         except (ValueError, TypeError):
             raise TemplateSyntaxError('"%s" tag got a non-integer '
                 'timeout value: %r' % (list(self.tags)[0], expire_time), lineno)
 
-        cache_key = u':'.join([fragm_name] + [urlquote(v) for v in vary_on])
+        args_string = u':'.join([urlquote(v) for v in vary_on])
+        args_md5 = md5_constructor(args_string)
+        cache_key = 'template.cache.%s.%s' % (fragm_name, args_md5.hexdigest())
         value = cache.get(cache_key)
         if value is None:
             value = caller()
