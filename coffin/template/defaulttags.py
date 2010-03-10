@@ -336,7 +336,7 @@ class SpacelessExtension(Extension):
     Works exactly like Django's own tag.
     """
 
-    tags = ['spaceless']
+    tags = set(['spaceless'])
 
     def parse(self, parser):
         lineno = parser.stream.next().lineno
