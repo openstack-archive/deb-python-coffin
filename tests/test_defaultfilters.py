@@ -1,9 +1,9 @@
 from datetime import datetime, date
 from nose.tools import assert_raises
-from coffin.common import env
 
 
 def r(s, context={}):
+    from coffin.common import env
     return env.from_string(s).render(context)
 
 
@@ -40,6 +40,7 @@ def test_floatformat():
 
 
 def test_date_stuff():
+    from coffin.common import env
     assert r('a{{ d|date("Y") }}b', {'d': date(2007, 01, 01)}) == 'a2007b'
     assert r('a{{ d|time("H") }}b', {'d': datetime(2007, 01, 01, 12, 01, 01)}) == 'a12b'
     # TODO: timesince, timeuntil
