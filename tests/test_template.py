@@ -4,9 +4,9 @@
 ``coffin.template.defaulttags`` have their own test modules.
 """
 
-
 def test_template_class():
     from coffin.template import Template
+    from coffin.common import env
 
     # initializing a template directly uses Coffin's Jinja
     # environment - we know it does if our tags are available.
