@@ -1,6 +1,7 @@
 ﻿from jinja2 import nodes
 from jinja2.ext import Extension
 from jinja2.exceptions import TemplateSyntaxError
+from jinja2 import Markup
 from django.conf import settings
 from coffin.template import Library
 
@@ -350,12 +351,47 @@ class SpacelessExtension(Extension):
         return strip_spaces_between_tags(caller().strip())
 
 
+class CsrfTokenExtension(Extension):
+    """Jinja2-version of the ``csrf_token`` tag.
+
+    Adapted from a snippet by Jason Green:
+    http://www.djangosnippets.org/snippets/1847/
+
+    This tag is a bit stricter than the Django tag in that it doesn't
+    simply ignore any invalid arguments passed in.
+    """
+
+    tags = set(['csrf_token'])
+
+    def parse(self, parser):
+        lineno = parser.stream.next().lineno
+        return nodes.Output([
+            self.call_method('_render', [nodes.Name('csrf_token', 'load')])
+        ]).set_lineno(lineno)
+
+    def _render(self, csrf_token):
+        if csrf_token:
+            if csrf_token == 'NOTPROVIDED':
+                return Markup(u"")
+            else:
+                return Markup(u"<div style='display:none'><input type='hidden' name='csrfmiddlewaretoken' value='%s' /></div>" % (csrf_token))
+        else:
+            # It's very probable that the token is missing because of
+            # misconfiguration, so we raise a warning
+            from django.conf import settings
+            if settings.DEBUG:
+                import warnings
+                warnings.warn("A {% csrf_token %} was used in a template, but the context did not provide the value.  This is usually caused by not using RequestContext.")
+            return u''
+
+
 # nicer import names
 load = LoadExtension
 url = URLExtension
 with_ = WithExtension
 cache = CacheExtension
 spaceless = SpacelessExtension
+csrf_token = CsrfTokenExtension
 
 
 register = Library()
@@ -364,3 +400,4 @@ register.tag(url)
 register.tag(with_)
 register.tag(cache)
 register.tag(spaceless)
+register.tag(csrf_token)

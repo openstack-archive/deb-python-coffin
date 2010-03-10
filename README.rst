@@ -23,6 +23,8 @@ Coffin currently makes the following Django tags available in Jinja:
 
 - {% with %}
 
+- {% csrf_token %}
+
 Django filters that are ported in Coffin:
 
 - date
