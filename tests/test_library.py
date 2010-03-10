@@ -13,11 +13,11 @@ def test_nodes_and_extensions():
     """
     from coffin.common import env
 
-    # Jinja2 extensions, loaded from a Coffin library   
+    # Jinja2 extensions, loaded from a Coffin library
     assert env.from_string('a{% foo %}b').render() == 'a{foo}b'
 
     # Django tags, loaded from a Coffin library
-    assert Template('{% load foo_tag %}a{% foo_coffin %}b').render({}) == 'a{foo}b'
+    assert Template('{% load foo_tag %}a{% foo_coffin %}b').render(Context()) == 'a{foo}b'
 
 
 def test_filters():
