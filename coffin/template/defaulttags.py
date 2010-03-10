@@ -370,19 +370,8 @@ class CsrfTokenExtension(Extension):
         ]).set_lineno(lineno)
 
     def _render(self, csrf_token):
-        if csrf_token:
-            if csrf_token == 'NOTPROVIDED':
-                return Markup(u"")
-            else:
-                return Markup(u"<div style='display:none'><input type='hidden' name='csrfmiddlewaretoken' value='%s' /></div>" % (csrf_token))
-        else:
-            # It's very probable that the token is missing because of
-            # misconfiguration, so we raise a warning
-            from django.conf import settings
-            if settings.DEBUG:
-                import warnings
-                warnings.warn("A {% csrf_token %} was used in a template, but the context did not provide the value.  This is usually caused by not using RequestContext.")
-            return u''
+        from django.template.defaulttags import CsrfTokenNode
+        return Markup(CsrfTokenNode().render({'csrf_token': csrf_token}))
 
 
 # nicer import names
