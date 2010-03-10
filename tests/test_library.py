@@ -23,6 +23,8 @@ def test_nodes_and_extensions():
 def test_filters():
     """Test availability of registered filters.
     """
+    from coffin.common import env
+
     # Filter registered with a Coffin library is available in Django and Jinja2
     assert env.from_string('a{{ "b"|foo }}c').render() == 'a{foo}c'
     assert Template('{% load foo_filter %}a{{ "b"|foo }}c').render(Context()) == 'a{foo}c'
