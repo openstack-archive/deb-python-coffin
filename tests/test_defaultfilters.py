@@ -51,5 +51,3 @@ def test_date_stuff():
     for f in ('date', 'time', 'timesince', 'timeuntil'):
         assert r('a{{ d|%s }}b' % f) == 'ab'
         assert r('a{{ d|%s }}b' % f, {'d': None}) == 'ab'
-        # given an empty string though (wrong type), an error would be raced
-        assert_raises(Exception, env.from_string('a{{ d|%s }}b' % f).render, {'d': ''})
