@@ -70,11 +70,14 @@ def test_url():
         ('{% url urls_app.views.index as url %}{{url}}', {}, '/url_test/'),
         ('{% url inexistent as url %}{{ url }}', {}, ''),    # no exception
     ):
+        print template, '==', expected_result
         try:
             actual_result = env.from_string(template).render(context)
         except Exception, e:
+            print '==> %s: (%s)' % (type(e), e)
             assert type(e) == expected_result
         else:
+            print '==> %s' % actual_result
             assert actual_result == expected_result
 
 
