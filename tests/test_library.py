@@ -29,10 +29,9 @@ def test_filters():
     assert env.from_string('a{{ "b"|foo }}c').render() == 'a{foo}c'
     assert Template('{% load foo_filter %}a{{ "b"|foo }}c').render(Context()) == 'a{foo}c'
 
-    # Filter registered with a Django library is not available in Jinja2
+    # Filter registered with a Django library is also available in Jinja2
     Template('{% load foo_filter_django %}{{ "b"|foo_django }}').render(Context())
-    assert_raises(Jinja2TemplateAssertionError,
-                  env.from_string, 'a{{ "b"|foo_django }}c')
+    assert env.from_string('a{{ "b"|foo }}c').render() == 'a{foo}c'
 
     # Some filters, while registered with a Coffin library, are only
     # available in Jinja2:

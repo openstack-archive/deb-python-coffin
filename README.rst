@@ -37,10 +37,12 @@ Django filters that are ported in Coffin:
 - truncatewords
 - truncatewords_html
 
+Note that for the most part, you can simply use filters written for Django
+directly in Coffin. For example, ``django.contrib.markup`` "just works" (tm).
+
 The template-related functionality of the following contrib modules has
 been ported in Coffin:
 
-- ``coffin.contrib.markup``
 - ``coffin.contrib.syndication``.
 
 Jinja 2's ``i18n`` extension is hooked up with Django, and a custom version

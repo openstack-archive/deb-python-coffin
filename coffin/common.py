@@ -3,6 +3,7 @@ import warnings
 
 from django import dispatch
 from jinja2 import Environment, loaders
+from coffin.template import Library as CoffinLibrary
 
 __all__ = ('env',)
 
@@ -77,8 +78,15 @@ class CoffinEnvironment(Environment):
                             # TODO: will need updating when #6587 lands
                             # libs.append(get_library(
                             #     "django.templatetags.%s" % os.path.splitext(f)[0]))
-                            libs.append(get_library(os.path.splitext(f)[0]))
-                            
+                            l = get_library(os.path.splitext(f)[0])
+                            if not isinstance(l, CoffinLibrary):
+                                # If this is only a standard Django library,
+                                # convert it. This will ensure that Django
+                                # filters in that library are converted and
+                                # made available in Jinja.
+                                l = CoffinLibrary.from_django(l)
+                            libs.append(l)
+
                         except InvalidTemplateLibrary:
                             pass
         return libs
