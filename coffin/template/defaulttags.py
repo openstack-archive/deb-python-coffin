@@ -127,7 +127,19 @@ class URLExtension(Extension):
 
         # get view name
         if stream.current.test('string'):
-            viewname = parser.parse_primary()
+            # Need to work around Jinja2 syntax here. Jinja by default acts
+            # like Python and concats subsequent strings. In this case
+            # though, we want {% url "app.views.post" "1" %} to be treated
+            # as view + argument, while still supporting
+            # {% url "app.views.post"|filter %}. Essentially, what we do is
+            # rather than let ``parser.parse_primary()`` deal with a "string"
+            # token, we do so ourselves, and let parse_primary() handle all
+            # other cases.
+            if stream.look().test('string'):
+                token = stream.next()
+                viewname = nodes.Const(token.value, lineno=token.lineno)
+            else:
+                viewname = parser.parse_primary()
         else:
             # parse valid tokens and manually build a string from them
             bits = []
@@ -223,13 +235,13 @@ class WithExtension(Extension):
         parser.stream.expect('name:as')
         name = parser.stream.expect('name')
         body = parser.parse_statements(['name:endwith'], drop_needle=True)
-        # Use a local variable instead of a macro argument to alias  
+        # Use a local variable instead of a macro argument to alias
         # the expression.  This allows us to nest "with" statements.
         body.insert(0, nodes.Assign(nodes.Name(name.value, 'store'), value))
         return nodes.CallBlock(
                 self.call_method('_render_block'), [], [], body).\
                     set_lineno(lineno)
-        
+
     def _render_block(self, caller=None):
         return caller()
 
@@ -312,7 +324,7 @@ class CacheExtension(Extension):
         from django.core.cache import cache   # delay depending in settings
         from django.utils.http import urlquote
         from django.utils.hashcompat import md5_constructor
-        
+
         try:
             expire_time = int(expire_time)
         except (ValueError, TypeError):

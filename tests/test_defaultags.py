@@ -52,6 +52,9 @@ def test_url():
         ('{% url urls_app.views.sum left=2*3,right=z()|length %}',
                 {'z':lambda: 'u'}, '/url_test/sum/6,1'),   # full expressive syntax
 
+	# regression: string view followed by a string argument works
+	('{% url "urls_app.views.sum" "1","2" %}', {}, '/url_test/sum/1,2'),
+
         # failures
         ('{% url %}', {}, TemplateSyntaxError),
         ('{% url 1,2,3 %}', {}, TemplateSyntaxError),
