@@ -1,8 +1,6 @@
 import inspect
 
 from django.contrib.flatpages.middleware import *
+from coffin.contrib.flatpages.views import flatpage
 
-from coffin.shortcuts import render_to_response
-from coffin.template import RequestContext, loader
-
-exec inspect.getsource(FlatpageFallbackMiddleware)
+exec inspect.getsource(FlatpageFallbackMiddleware)\
