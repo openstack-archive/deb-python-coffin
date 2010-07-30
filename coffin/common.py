@@ -16,7 +16,7 @@ class CoffinEnvironment(Environment):
         if not loader:
             loader = loaders.ChoiceLoader(self._get_loaders())
         all_ext = self._get_all_extensions()
-        
+
         extensions.extend(all_ext['extensions'])
         super(CoffinEnvironment, self).__init__(extensions=extensions, loader=loader, **kwargs)
         self.filters.update(filters)
@@ -25,10 +25,12 @@ class CoffinEnvironment(Environment):
         self.globals.update(all_ext['globals'])
         self.tests.update(tests)
         self.tests.update(all_ext['tests'])
+        for key, value in all_ext['attrs'].items():
+            setattr(self, key, value)
 
         from coffin.template import Template as CoffinTemplate
         self.template_class = CoffinTemplate
-        
+
     def _get_loaders(self):
         """Tries to translate each template loader given in the Django settings
         (:mod:`django.settings`) to a similarly-behaving Jinja loader.
@@ -96,7 +98,7 @@ class CoffinEnvironment(Environment):
         from coffin.template import builtins
         from django.core.urlresolvers import get_callable
 
-        extensions, filters, globals, tests = [], {}, {}, {}
+        extensions, filters, globals, tests, attrs = [], {}, {}, {}, {}
 
         # start with our builtins
         for lib in builtins:
@@ -133,12 +135,14 @@ class CoffinEnvironment(Environment):
             filters.update(getattr(lib, 'jinja2_filters', {}))
             globals.update(getattr(lib, 'jinja2_globals', {}))
             tests.update(getattr(lib, 'jinja2_tests', {}))
+            attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
 
         return dict(
             extensions=extensions,
             filters=filters,
             globals=globals,
             tests=tests,
+            attrs=attrs,
         )
 
 def get_env():

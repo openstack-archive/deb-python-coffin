@@ -15,6 +15,7 @@ def test_nodes_and_extensions():
 
     # Jinja2 extensions, loaded from a Coffin library
     assert env.from_string('a{% foo %}b').render() == 'a{foo}b'
+    assert env.from_string('a{% foo_ex %}b').render() == 'a{my_foo}b'
 
     # Django tags, loaded from a Coffin library
     assert Template('{% load foo_tag %}a{% foo_coffin %}b').render(Context()) == 'a{foo}b'
