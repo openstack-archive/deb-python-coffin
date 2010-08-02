@@ -39,7 +39,7 @@ class CoffinEnvironment(Environment):
         settings.
         """
         loaders = []
-        
+
         from coffin.template.loaders import jinja_loader_from_django_loader
 
         from django.conf import settings
@@ -81,12 +81,6 @@ class CoffinEnvironment(Environment):
                             # libs.append(get_library(
                             #     "django.templatetags.%s" % os.path.splitext(f)[0]))
                             l = get_library(os.path.splitext(f)[0])
-                            if not isinstance(l, CoffinLibrary):
-                                # If this is only a standard Django library,
-                                # convert it. This will ensure that Django
-                                # filters in that library are converted and
-                                # made available in Jinja.
-                                l = CoffinLibrary.from_django(l)
                             libs.append(l)
 
                         except InvalidTemplateLibrary:
@@ -99,13 +93,22 @@ class CoffinEnvironment(Environment):
         from django.core.urlresolvers import get_callable
 
         extensions, filters, globals, tests, attrs = [], {}, {}, {}, {}
-
-        # start with our builtins
-        for lib in builtins:
+        def _load_lib(lib):
+            if not isinstance(lib, CoffinLibrary):
+                # If this is only a standard Django library,
+                # convert it. This will ensure that Django
+                # filters in that library are converted and
+                # made available in Jinja.
+                lib = CoffinLibrary.from_django(lib)
             extensions.extend(getattr(lib, 'jinja2_extensions', []))
             filters.update(getattr(lib, 'jinja2_filters', {}))
             globals.update(getattr(lib, 'jinja2_globals', {}))
             tests.update(getattr(lib, 'jinja2_tests', {}))
+            attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
+
+        # start with our builtins
+        for lib in builtins:
+            _load_lib(lib)
 
         if settings.USE_I18N:
             extensions.append(_JINJA_I18N_EXTENSION_NAME)
@@ -131,11 +134,7 @@ class CoffinEnvironment(Environment):
 
         # add extensions defined in application's templatetag libraries
         for lib in self._get_templatelibs():
-            extensions.extend(getattr(lib, 'jinja2_extensions', []))
-            filters.update(getattr(lib, 'jinja2_filters', {}))
-            globals.update(getattr(lib, 'jinja2_globals', {}))
-            tests.update(getattr(lib, 'jinja2_tests', {}))
-            attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
+            _load_lib(lib)
 
         return dict(
             extensions=extensions,

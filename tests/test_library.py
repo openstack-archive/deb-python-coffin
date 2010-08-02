@@ -62,6 +62,16 @@ def test_filters():
     assert env.from_string('{{ "><"|django_jinja_forced }}').render() == '><'
 
 
+def test_env_builtins_django():
+    """Test that when the environment is assembled, Django libraries which
+    are included in the list of builtins are properly supported.
+    """
+    from coffin.common import get_env
+    from coffin.template import add_to_builtins
+    add_to_builtins('apps.django_lib')
+    assert get_env().from_string('a{{ "b"|foo_django_builtin }}c').render() == 'a{foo}c'
+
+
 def test_filter_compat_safestrings():
     """Test filter compatibility layer with respect to safe strings.
     """
