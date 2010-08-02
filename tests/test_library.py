@@ -8,6 +8,15 @@ from django.template import Template, Context, \
     TemplateSyntaxError as DjangoTemplateSyntaxError
 
 
+# TODO: It would be preferrable to split these tests into those checks
+# which actually test the Library object, and those which test the assembly
+# of the Environment instance. Testcode for the former could be written more
+# cleanly by creating the library instances within the test code and
+# registering them manually with the environment, rather than having to
+# place them in fake Django apps in completely different files to have
+# them loaded.
+
+
 def test_nodes_and_extensions():
     """Test availability of registered nodes/extensions.
     """
