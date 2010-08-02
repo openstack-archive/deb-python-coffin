@@ -19,7 +19,7 @@ General notes:
 
 import inspect
 from django.utils.safestring import SafeUnicode, SafeData, EscapeData
-from jinja2 import Markup, environmentfilter
+from jinja2 import Markup, environmentfilter, Undefined
 
 
 __all__ = (
@@ -43,15 +43,23 @@ def django_filter_to_jinja2(filter_func):
 
     TODO: Django's "func.is_safe" is not yet handled
     """
-    def _convert(v):
+    def _convert_out(v):
         if isinstance(v, SafeData):
             return Markup(v)
         if isinstance(v, EscapeData):
             return Markup.escape(v)       # not 100% equivalent, see mod docs
         return v
-    def conversion_wrapper(*args, **kwargs):
-        result = filter_func(*args, **kwargs)
-        return _convert(result)
+    def _convert_in(v):
+        if isinstance(v, Undefined):
+            # Essentially the TEMPLATE_STRING_IF_INVALID default
+            # setting. If a non-default is set, Django wouldn't apply
+            # filters. This is something that we neither can nor want to
+            # simulate in Jinja.
+            return ''
+        return v
+    def conversion_wrapper(value, *args, **kwargs):
+        result = filter_func(_convert_in(value), *args, **kwargs)
+        return _convert_out(result)
     # Jinja2 supports a similar machanism to Django's
     # ``needs_autoescape`` filters: environment filters. We can
     # thus support Django filters that use it in Jinja2 with just

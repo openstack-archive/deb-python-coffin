@@ -21,6 +21,9 @@ def unsafe_output(value):
     return unicode(value)
 
 
+def django_raw_output(value):
+    return value
+
 def django_escape_output(value):
     # Make sure the value is converted to unicode first, because otherwise,
     # if it is already SafeData (for example, when coming from the template
@@ -34,5 +37,6 @@ register = Library()
 register.filter('needing_autoescape', needing_autoescape)
 register.filter('jinja_safe_output', jinja_safe_output)
 register.filter('django_safe_output', django_safe_output)
+register.filter('django_raw_output', django_raw_output)
 register.filter('unsafe_output', unsafe_output)
 register.filter('django_escape_output', django_escape_output)

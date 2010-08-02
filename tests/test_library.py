@@ -15,6 +15,7 @@ from django.template import Template, Context, \
 # registering them manually with the environment, rather than having to
 # place them in fake Django apps in completely different files to have
 # them loaded.
+# The tests for the compatibility layer could also be factored out.
 
 
 def test_nodes_and_extensions():
@@ -119,5 +120,8 @@ def test_filter_compat_other():
 
     # [bug] @needs_autoescape also (still) works correctly in Django
     assert Template('{% load compat_filters %}{{ "b"|needing_autoescape }}').render(Context()) == 'True'
+
+    # The Django filters can handle "Undefined" values
+    assert env.from_string('{{ doesnotexist|django_raw_output }}').render() == ''
 
     # TODO: test @stringfilter

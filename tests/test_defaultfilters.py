@@ -17,6 +17,7 @@ def test_django_builtins_available():
     from coffin.template import defaultfilters
     assert not hasattr(defaultfilters, 'get_digit')  # has no port
     assert r('{{ "23475"|get_digit("2") }}') == '7'
+    assert r('{{ unknown|get_digit("2") }}') == ''
 
 
 def test_url():
