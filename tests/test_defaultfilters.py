@@ -7,6 +7,18 @@ def r(s, context={}):
     return env.from_string(s).render(context)
 
 
+def test_django_builtins_available():
+    """Many filters have not been re-implemented specifically for
+    Coffin, but instead the Django version is used through an
+    interop-layer.
+
+    Make sure that those are properly made available in Jinja2.
+    """
+    from coffin.template import defaultfilters
+    assert not hasattr(defaultfilters, 'get_digit')  # has no port
+    assert r('{{ "23475"|get_digit("2") }}') == '7'
+
+
 def test_url():
     # project name is optional
     assert r('{{ "urls_app.views.index"|url() }}') == '/url_test/'
