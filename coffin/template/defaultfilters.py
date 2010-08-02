@@ -1,20 +1,10 @@
-﻿"""Jinja2-ports of many of Django's default filters.
+﻿"""Coffin automatically makes Django's builtin filters available in Jinja2,
+through an interop-layer.
+
+However, Jinja 2 provides room to improve the syntax of some of the
+filters. Those can be overridden here.
 
 TODO: Most of the filters in here need to be updated for autoescaping.
-
-TODO: For the most part, it would seem that coffin.interop could convert
-most of Django's own filters automatically. The ports here only seem to:
- * Handling of "Undefined" (could be done by interop).
- * Try to be stricter about errors, fail loudly (not sure if this is
-   something that Coffin needs to enforce).
- * The url() filter is a Coffin-only invention (from a time where the 
-   url-tag was not yet ported).
- * The pluralize tag uses a syntax nicer (two arguments).
-Given that, wouldn't it make more sense to simply support all of Django's
-filters by automatic conversion? Then, if still necessary, we can still
-provide custom implementations for a select subset.
-Note that this module origins from a time before our interop functionality
-was available.
 """
 
 from coffin.template import Library
@@ -25,6 +15,9 @@ register = Library()
 
 @register.filter(jinja2_only=True)
 def url(view_name, *args, **kwargs):
+    """This is an alternative to the {% url %} tag. It comes from a time
+    before Coffin had a port of the tag.
+    """
     from coffin.template.defaulttags import url
     return url._reverse(view_name, args, kwargs)
 

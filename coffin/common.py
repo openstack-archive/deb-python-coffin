@@ -89,7 +89,7 @@ class CoffinEnvironment(Environment):
 
     def _get_all_extensions(self):
         from django.conf import settings
-        from coffin.template import builtins
+        from django.template import builtins
         from django.core.urlresolvers import get_callable
 
         extensions, filters, globals, tests, attrs = [], {}, {}, {}, {}
