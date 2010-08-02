@@ -66,10 +66,9 @@ class Library(DjangoLibrary):
         """
         from copy import copy
         result = cls()
-        result.filters = copy(django_library.filters)
         result.tags = copy(django_library.tags)
-        for name, func in result.filters.iteritems():
-            result._register_filter(name, func, jinja2_only=True)
+        for name, func in django_library.filters.iteritems():
+            result._register_filter(name, func, type='django')
         return result
 
     def test(self, name=None, func=None):
@@ -155,7 +154,7 @@ class Library(DjangoLibrary):
         else:
             return super(Library, self).tag_function(func_or_node)
 
-    def filter(self, name=None, filter_func=None, jinja2_only=False):
+    def filter(self, name=None, filter_func=None, type=None, jinja2_only=None):
         """Register a filter with both the Django and Jinja2 template
         engines, if possible - or only Jinja2, if ``jinja2_only`` is
         specified. ``jinja2_only`` does not affect conversion of the
@@ -166,6 +165,12 @@ class Library(DjangoLibrary):
         features like environment- and contextfilters are however not
         supported in Django. Such filters will only be registered with
         Jinja.
+
+        If you know which template language the filter was written for,
+        you may want to specify type="django" or type="jinja2", to disable
+        the interop layer which in some cases might not be able to operate
+        entirely opaque. For example, Jinja 2 filters may not receive a
+        "Undefined" value if the interop layer is applied.
 
         Supports the same invocation syntax as the original Django
         version, including use as a decorator.
@@ -178,7 +183,7 @@ class Library(DjangoLibrary):
         def filter_function(f):
             return self._register_filter(
                 getattr(f, "_decorated_function", f).__name__,
-                f, jinja2_only=jinja2_only)
+                f, type=type, jinja2_only=jinja2_only)
         if name == None and filter_func == None:
             # @register.filter()
             return filter_function
@@ -189,34 +194,57 @@ class Library(DjangoLibrary):
             else:
                 # @register.filter('somename') or @register.filter(name='somename')
                 def dec(func):
-                    return self.filter(name, func, jinja2_only=jinja2_only)
+                    return self.filter(name, func, type=type,
+                                       jinja2_only=jinja2_only)
                 return dec
         elif name != None and filter_func != None:
             # register.filter('somename', somefunc)
-            return self._register_filter(name, filter_func,
+            return self._register_filter(name, filter_func, type=type,
                 jinja2_only=jinja2_only)
         else:
             raise InvalidTemplateLibrary("Unsupported arguments to "
                 "Library.filter: (%r, %r)", (name, filter_func))
 
-    def _register_filter(self, name, func, jinja2_only=None):
+    def jinja2_filter(self, *args, **kwargs):
+        """Shortcut for filter(type='jinja2').
+        """
+        kw = {'type': JINJA2}
+        kw.update(kwargs)
+        return self.filter(*args, **kw)
+
+    def _register_filter(self, name, func, type=None, jinja2_only=None):
+        assert type in (None, JINJA2, DJANGO,)
+
+        # The user might not specify the language the filter was written
+        # for, but sometimes we can auto detect it.
         filter_type, can_be_ported = guess_filter_type(func)
-        if filter_type == JINJA2 and not can_be_ported:
+        assert not (filter_type and type) or filter_type == type, \
+               "guessed filter type (%s) not matching claimed type (%s)" % (
+                   filter_type, type,
+               )
+        if not filter_type and type:
+            filter_type = type
+
+        if filter_type == JINJA2:
             self.jinja2_filters[name] = func
+            if can_be_ported and not jinja2_only:
+                self.filters[name] = jinja2_filter_to_django(func)
             return func
-        elif filter_type == DJANGO and not can_be_ported:
-            if jinja2_only:
-                raise ValueError('This filter cannot be ported to Jinja2.')
+        elif filter_type == DJANGO:
             self.filters[name] = func
-            return func
-        elif jinja2_only:
-            func = django_filter_to_jinja2(func)
-            self.jinja2_filters[name] = func
+            if not can_be_ported and jinja2_only:
+                raise ValueError('This filter cannot be ported to Jinja2.')
+            if can_be_ported:
+                self.jinja2_filters[name] = django_filter_to_jinja2(func)
             return func
         else:
-            # register the filter with both engines
             django_func = jinja2_filter_to_django(func)
             jinja2_func = django_filter_to_jinja2(func)
-            self.filters[name] = django_func
-            self.jinja2_filters[name] = jinja2_func
-            return (django_func, jinja2_func)
+            if jinja2_only:
+                self.jinja2_filters[name] = jinja2_func
+                return jinja2_func
+            else:
+                # register the filter with both engines
+                self.filters[name] = django_func
+                self.jinja2_filters[name] = jinja2_func
+                return (django_func, jinja2_func)
