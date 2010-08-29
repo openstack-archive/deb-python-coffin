@@ -3,6 +3,7 @@ import warnings
 
 from django import dispatch
 from jinja2 import Environment, loaders
+from jinja2 import defaults as jinja2_defaults
 from coffin.template import Library as CoffinLibrary
 
 __all__ = ('env',)
@@ -20,11 +21,13 @@ class CoffinEnvironment(Environment):
         extensions.extend(all_ext['extensions'])
         super(CoffinEnvironment, self).__init__(extensions=extensions, loader=loader, **kwargs)
 
-        self.filters.update(all_ext['filters'])
+        # Note: all_ext already includes Jinja2's own builtins (with
+        # the proper priority), so we want to assign to these attributes.
+        self.filters = all_ext['filters'].copy()
         self.filters.update(filters)
-        self.globals.update(all_ext['globals'])
+        self.globals = all_ext['globals'].copy()
         self.globals.update(globals)
-        self.tests.update(all_ext['tests'])
+        self.tests = all_ext['tests'].copy()
         self.tests.update(tests)
         for key, value in all_ext['attrs'].items():
             setattr(self, key, value)
@@ -90,7 +93,8 @@ class CoffinEnvironment(Environment):
 
     def _get_all_extensions(self):
         from django.conf import settings
-        from django.template import builtins
+        from django.template import builtins as django_builtins
+        from coffin.template import builtins as coffin_builtins
         from django.core.urlresolvers import get_callable
 
         extensions, filters, globals, tests, attrs = [], {}, {}, {}, {}
@@ -107,16 +111,26 @@ class CoffinEnvironment(Environment):
             tests.update(getattr(lib, 'jinja2_tests', {}))
             attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
 
-        # start with our builtins
-        for lib in builtins:
+        # Start with Django's builtins; this give's us all of Django's
+        # filters courtasy of our interop layer.
+        for lib in django_builtins:
             _load_lib(lib)
 
+        # The stuff Jinja2 comes with by default should override Django.
+        filters.update(jinja2_defaults.DEFAULT_FILTERS)
+        tests.update(jinja2_defaults.DEFAULT_TESTS)
+        globals.update(jinja2_defaults.DEFAULT_NAMESPACE)
+
+        # Our own set of builtins are next, overwriting Jinja2's.
+        for lib in coffin_builtins:
+            _load_lib(lib)
+
+        # Optionally, include the i18n extension.
         if settings.USE_I18N:
             extensions.append(_JINJA_I18N_EXTENSION_NAME)
 
-        # add the globally defined extension list
+        # Next, add the globally defined extensions
         extensions.extend(list(getattr(settings, 'JINJA2_EXTENSIONS', [])))
-
         def from_setting(setting):
             retval = {}
             setting = getattr(settings, setting, {})
@@ -128,12 +142,11 @@ class CoffinEnvironment(Environment):
                     value = callable(value) and value or get_callable(value)
                     retval[value.__name__] = value
             return retval
-
         filters.update(from_setting('JINJA2_FILTERS'))
         globals.update(from_setting('JINJA2_GLOBALS'))
         tests.update(from_setting('JINJA2_TESTS'))
 
-        # add extensions defined in application's templatetag libraries
+        # Finally, add extensions defined in application's templatetag libraries
         for lib in self._get_templatelibs():
             _load_lib(lib)
 

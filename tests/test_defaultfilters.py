@@ -20,6 +20,15 @@ def test_django_builtins_available():
     assert r('{{ unknown|get_digit("2") }}') == ''
 
 
+def test_jinja2_builtins():
+    """Ensure that the Jinja2 builtins are available, and take
+    precedence over the Django builtins (which we automatically convert
+    and install).
+    """
+    # Django's default filter only accepts one argument.
+    assert r('{{ unknown|default("2", True) }}') == '2'
+
+
 def test_url():
     # project name is optional
     assert r('{{ "urls_app.views.index"|url() }}') == '/url_test/'
