@@ -19,12 +19,13 @@ class CoffinEnvironment(Environment):
 
         extensions.extend(all_ext['extensions'])
         super(CoffinEnvironment, self).__init__(extensions=extensions, loader=loader, **kwargs)
-        self.filters.update(filters)
+
         self.filters.update(all_ext['filters'])
-        self.globals.update(globals)
+        self.filters.update(filters)
         self.globals.update(all_ext['globals'])
-        self.tests.update(tests)
+        self.globals.update(globals)
         self.tests.update(all_ext['tests'])
+        self.tests.update(tests)
         for key, value in all_ext['attrs'].items():
             setattr(self, key, value)
 
