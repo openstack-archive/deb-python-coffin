@@ -1,33 +1,30 @@
 from django.contrib.syndication.feeds import *       # merge modules
 
 import sys
-from django.contrib.syndication.feeds import Feed as DjangoFeed
+from django.contrib.syndication.feeds import Feed as DjangoDeprecatedFeed
+from django.contrib.syndication.views import Feed as DjangoNewFeed
 from coffin.template import loader as coffin_loader
+from django import VERSION as DJANGO_VERSION
 
 
-class Feed(DjangoFeed):
-    """A ``Feed`` implementation that renders it's title and
-    description templates using Jinja2.
+class Feed(DjangoDeprecatedFeed):
+    """Django changed the syndication framework in 1.2. This class
+    represents the old way, ported to Coffin. If you are using 1.2,
+    you should use the ``Feed`` class in
+    ``coffin.contrib.syndication.views``.
 
-    Unfortunately, Django's base ``Feed`` class is not very extensible
-    in this respect at all. For a real solution, we'd have to essentially
-    have to duplicate the whole class. So for now, we use this terrible
-    non-thread safe hack.
-
-    Another, somewhat crazy option would be:
-        * Render the templates ourselves through Jinja2 (possible
-          introduce new attributes to avoid having to rewrite the
-          existing ones).
-        * Make the rendered result available to Django/the superclass by
-          using a custom template loader using a prefix, say
-          "feed:<myproject.app.views.MyFeed>". The loader would simply
-          return the Jinja-rendered template (escaped), the Django template
-          mechanism would find no nodes and just pass the output through.
-    Possible even worse than this though.
+    See also there for some notes on what we are doing here.
     """
 
     def get_feed(self, *args, **kwargs):
-        parent_module = sys.modules[DjangoFeed.__module__]
+        if DJANGO_VERSION < (1,2):
+            parent_module = sys.modules[DjangoDeprecatedFeed.__module__]
+        else:
+            # In Django 1.2, our parent DjangoDeprecatedFeed class really
+            # inherits from DjangoNewFeed, so we need to patch the loader
+            # in a different module.
+            parent_module = sys.modules[DjangoNewFeed.__module__]
+
         old_loader = parent_module.loader
         parent_module.loader = coffin_loader
         try:
