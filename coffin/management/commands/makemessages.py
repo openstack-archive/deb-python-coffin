@@ -39,7 +39,7 @@ class Command(makemessages.Command):
         trans_real.endblock_re = re.compile(
             trans_real.endblock_re.pattern + '|' + r"""^\s*endtrans$""")
         trans_real.block_re = re.compile(
-            trans_real.block_re.pattern + '|' + r"""^\s*trans(?:\s+|$)""")
+            trans_real.block_re.pattern + '|' + r"""^\s*trans(?:\s*$)""")
 
         try:
             super(Command, self).handle(*args, **options)
