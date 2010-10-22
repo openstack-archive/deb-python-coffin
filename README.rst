@@ -47,6 +47,19 @@ Jinja 2's ``i18n`` extension is hooked up with Django, and a custom version
 of makemessages supports string extraction from both Jinja2 and Django
 templates.
 
+Autoescape
+==========
+
+When using Auto Escape you will notice that marking something as a
+Safestrings with Django will not affect the rendering in Jinja 2. To fix this
+you can monkeypatch Django to produce Jinja 2 compatible Safestrings:: 
+
+    '''Monkeypatch Django to mimic Jinja2 behaviour'''                 
+    from django.utils import safestring                                
+    if not hasattr(safestring, '__html__'):                            
+        safestring.SafeString.__html__ = lambda self: str(self)        
+        safestring.SafeUnicode.__html__ = lambda self: unicode(self)   
+
 Rendering
 =========
 
@@ -196,3 +209,4 @@ Running the tests
 Use the nose framework:
 
     http://somethingaboutorange.com/mrl/projects/nose/
+
