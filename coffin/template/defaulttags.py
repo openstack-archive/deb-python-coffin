@@ -86,7 +86,8 @@ class LoadExtension(Extension):
         #
         # TODO: Actually, there's ``nodes.EnvironmentAttribute``.
         #ae_setting = object.__new__(nodes.InternalName)
-        #nodes.Node.__init__(ae_setting, 'environment.autoescape', lineno=lineno)
+        #nodes.Node.__init__(ae_setting, 'environment.autoescape',
+            lineno=lineno)
         #temp = parser.free_identifier()
         #body.insert(0, nodes.Assign(temp, ae_setting))
         #body.insert(1, nodes.Assign(ae_setting, nodes.Const(True)))
@@ -133,7 +134,7 @@ class URLExtension(Extension):
             bits = []
             name_allowed = True
             while True:
-                if stream.current.test_any('dot', 'sub'):
+                if stream.current.test_any('dot', 'sub', 'colon'):
                     bits.append(stream.next())
                     name_allowed = True
                 elif stream.current.test('name') and name_allowed:
@@ -160,15 +161,18 @@ class URLExtension(Extension):
             else:
                 args.append(parser.parse_expression())
 
-        make_call_node = lambda *kw: \
-            self.call_method('_reverse',
-                             args=[viewname, nodes.List(args), nodes.Dict(kwargs)],
-                             kwargs=kw)
+        def make_call_node(*kw):
+            return self.call_method('_reverse', args=[
+                viewname,
+                nodes.List(args),
+                nodes.Dict(kwargs),
+            ], kwargs=kw)
 
         # if an as-clause is specified, write the result to context...
         if stream.next_if('name:as'):
             var = nodes.Name(stream.expect('name').value, 'store')
-            call_node = make_call_node(nodes.Keyword('fail', nodes.Const(False)))
+            call_node = make_call_node(nodes.Keyword('fail',
+                nodes.Const(False)))
             return nodes.Assign(var, call_node)
         # ...otherwise print it out.
         else:
@@ -223,13 +227,13 @@ class WithExtension(Extension):
         parser.stream.expect('name:as')
         name = parser.stream.expect('name')
         body = parser.parse_statements(['name:endwith'], drop_needle=True)
-        # Use a local variable instead of a macro argument to alias  
+        # Use a local variable instead of a macro argument to alias
         # the expression.  This allows us to nest "with" statements.
         body.insert(0, nodes.Assign(nodes.Name(name.value, 'store'), value))
         return nodes.CallBlock(
                 self.call_method('_render_block'), [], [], body).\
                     set_lineno(lineno)
-        
+
     def _render_block(self, caller=None):
         return caller()
 
@@ -312,12 +316,12 @@ class CacheExtension(Extension):
         from django.core.cache import cache   # delay depending in settings
         from django.utils.http import urlquote
         from django.utils.hashcompat import md5_constructor
-        
+
         try:
             expire_time = int(expire_time)
         except (ValueError, TypeError):
-            raise TemplateSyntaxError('"%s" tag got a non-integer '
-                'timeout value: %r' % (list(self.tags)[0], expire_time), lineno)
+            raise TemplateSyntaxError('"%s" tag got a non-integer timeout '
+                'value: %r' % (list(self.tags)[0], expire_time), lineno)
 
         args_string = u':'.join([urlquote(v) for v in vary_on])
         args_md5 = md5_constructor(args_string)
@@ -343,7 +347,7 @@ class SpacelessExtension(Extension):
         body = parser.parse_statements(['name:endspaceless'], drop_needle=True)
         return nodes.CallBlock(
             self.call_method('_strip_spaces', [], [], None, None),
-            [], [], body
+            [], [], body,
         ).set_lineno(lineno)
 
     def _strip_spaces(self, caller=None):
@@ -366,7 +370,7 @@ class CsrfTokenExtension(Extension):
     def parse(self, parser):
         lineno = parser.stream.next().lineno
         return nodes.Output([
-            self.call_method('_render', [nodes.Name('csrf_token', 'load')])
+            self.call_method('_render', [nodes.Name('csrf_token', 'load')]),
         ]).set_lineno(lineno)
 
     def _render(self, csrf_token):
@@ -382,7 +386,6 @@ cache = CacheExtension
 spaceless = SpacelessExtension
 csrf_token = CsrfTokenExtension
 
-
 register = Library()
 register.tag(load)
 register.tag(url)
@@ -390,3 +393,4 @@ register.tag(with_)
 register.tag(cache)
 register.tag(spaceless)
 register.tag(csrf_token)
+

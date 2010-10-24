@@ -5,14 +5,16 @@ TODO: Most of the filters in here need to be updated for autoescaping.
 
 from coffin.template import Library
 from jinja2.runtime import Undefined
-# from jinja2 import Markup
+from jinja2 import filters
 
 register = Library()
 
-@register.filter(jinja2_only=True)
 def url(view_name, *args, **kwargs):
     from coffin.template.defaulttags import url
     return url._reverse(view_name, args, kwargs)
+
+register.filter(url, jinja2_only=True)
+register.object(url)
 
 @register.filter(jinja2_only=True)
 def timesince(value, *arg):
@@ -95,3 +97,8 @@ def floatformat(value, arg=-1):
     if result == '':  # django couldn't handle the value
         raise ValueError(value)
     return result
+
+@register.filter(jinja2_only=True)
+def default(value, default_value=u'', boolean=True):
+    return filters.do_default(value, default_value, boolean)
+
