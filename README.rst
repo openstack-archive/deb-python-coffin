@@ -126,7 +126,7 @@ constants via your ``settings.py``::
     def MEDIA_URL():
         return settings.MEDIA_URL
 
-    JINJA2_GLOBALS = (
+    JINJA2_CONSTANTS = (
         MEDIA_URL,
     )        
 
