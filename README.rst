@@ -110,7 +110,8 @@ Example for a Jinja-enabled template library::
     register.object(my_function_name) # A global function/object
     register.test(my_test_name)       # A test function
 
-You may also define additional extensions, filters, tests, and globas via your ``settings.py``::
+You may also define additional extensions, filters, tests, globals and
+constants via your ``settings.py``::
 
     JINJA2_FILTERS = (
         'path.to.myfilter',
@@ -121,6 +122,13 @@ You may also define additional extensions, filters, tests, and globas via your `
     JINJA2_EXTENSIONS = (
         'jinja2.ext.do',
     )
+
+    def MEDIA_URL():
+        return settings.MEDIA_URL
+
+    JINJA2_GLOBALS = (
+        MEDIA_URL,
+    )        
 
 Other things of note
 ====================
