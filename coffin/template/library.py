@@ -1,5 +1,6 @@
 ﻿from django.template import Library as DjangoLibrary, InvalidTemplateLibrary
 from jinja2.ext import Extension as Jinja2Extension
+import types
 from coffin.interop import (
     DJANGO, JINJA2,
     guess_filter_type, jinja2_filter_to_django, django_filter_to_jinja2)
@@ -148,7 +149,8 @@ class Library(DjangoLibrary):
             return super(Library, self).tag(name_or_node, compile_function)
 
     def tag_function(self, func_or_node):
-        if issubclass(func_or_node, Jinja2Extension):
+        if not isinstance(func_or_node, types.FunctionType) and \
+                issubclass(func_or_node, Jinja2Extension):
             self.jinja2_extensions.append(func_or_node)
             return func_or_node
         else:

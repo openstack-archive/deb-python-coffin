@@ -49,6 +49,19 @@ Jinja 2's ``i18n`` extension is hooked up with Django, and a custom version
 of makemessages supports string extraction from both Jinja2 and Django
 templates.
 
+Autoescape
+==========
+
+When using Auto Escape you will notice that marking something as a
+Safestrings with Django will not affect the rendering in Jinja 2. To fix this
+you can monkeypatch Django to produce Jinja 2 compatible Safestrings:: 
+
+    '''Monkeypatch Django to mimic Jinja2 behaviour'''                 
+    from django.utils import safestring                                
+    if not hasattr(safestring, '__html__'):                            
+        safestring.SafeString.__html__ = lambda self: str(self)        
+        safestring.SafeUnicode.__html__ = lambda self: unicode(self)   
+
 Rendering
 =========
 
@@ -99,7 +112,8 @@ Example for a Jinja-enabled template library::
     register.object(my_function_name) # A global function/object
     register.test(my_test_name)       # A test function
 
-You may also define additional extensions, filters, tests, and globas via your ``settings.py``::
+You may also define additional extensions, filters, tests, globals and
+constants via your ``settings.py``::
 
     JINJA2_FILTERS = (
         'path.to.myfilter',
@@ -111,6 +125,13 @@ You may also define additional extensions, filters, tests, and globas via your `
         'jinja2.ext.do',
     )
 
+    def MEDIA_URL():
+        return settings.MEDIA_URL
+
+    JINJA2_CONSTANTS = (
+        MEDIA_URL,
+    )        
+
 Other things of note
 ====================
 
@@ -121,6 +142,11 @@ by backwards-compatibility  concerns. However, if you are converting your
 templates anyway, it might be a good opportunity for this change.
 
 (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e
+
+This version of coffin modifies Jinja 2's ``TemplateSyntaxError`` to be
+compatible with Django. So there is no need to disable ``TEMPLATE_DEBUG``.
+You can just keep `TEPMLATE_DEBUG=True`` in your settings to benefit from both
+Jinja 2 and Django's template debugging.
 
 ``coffin.template.loader`` is a port of ``django.template.loader`` and
 comes with a Jinja2-enabled version of ``get_template()``.
@@ -190,3 +216,4 @@ Running the tests
 Use the nose framework:
 
     http://somethingaboutorange.com/mrl/projects/nose/
+
