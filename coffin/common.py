@@ -23,7 +23,6 @@ class CoffinEnvironment(Environment):
         super(CoffinEnvironment, self).__init__(
             extensions=extensions,
             loader=loader,
-            auto_reload=settings.DEBUG,
             **kwargs
         )
         # Note: all_ext already includes Jinja2's own builtins (with
