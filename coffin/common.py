@@ -23,7 +23,6 @@ class CoffinEnvironment(Environment):
         super(CoffinEnvironment, self).__init__(
             extensions=extensions,
             loader=loader,
-            cache_size=-1,
             auto_reload=settings.DEBUG,
             **kwargs
         )
