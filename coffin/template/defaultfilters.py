@@ -105,7 +105,7 @@ def floatformat(value, arg=-1):
         raise ValueError(value)
     return result
 
-@register.filter(jinja2_only=True)
+@register.jinja2_filter(jinja2_only=True)
 def default(value, default_value=u'', boolean=True):
     """Make the default filter, if used without arguments, behave like
     Django's own version.
