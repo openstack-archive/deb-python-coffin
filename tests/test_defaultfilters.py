@@ -35,6 +35,15 @@ def test_url():
     assert r('{{ "apps.urls_app.views.index"|url() }}') == '/url_test/'
 
 
+def test_default():
+    """We make the Jinja2 default filter behave like Django's without
+    arguments, but still support Jinja2 extended syntax.
+    """
+    assert r('{{ foo|default("default") }}') == 'default'
+    assert r('{{ foo|default("default") }}', {'foo': False}) == 'default'
+    assert r('{{ foo|default("default", False) }}', {'foo': False}) == 'False'
+
+
 def test_pluralize():
     assert r('vote{{ 0|pluralize }}') == 'votes'
     assert r('vote{{ 1|pluralize }}') == 'vote'
