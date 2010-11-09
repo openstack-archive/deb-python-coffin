@@ -54,13 +54,13 @@ Autoescape
 
 When using Auto Escape you will notice that marking something as a
 Safestrings with Django will not affect the rendering in Jinja 2. To fix this
-you can monkeypatch Django to produce Jinja 2 compatible Safestrings:: 
+you can monkeypatch Django to produce Jinja 2 compatible Safestrings::
 
-    '''Monkeypatch Django to mimic Jinja2 behaviour'''                 
-    from django.utils import safestring                                
-    if not hasattr(safestring, '__html__'):                            
-        safestring.SafeString.__html__ = lambda self: str(self)        
-        safestring.SafeUnicode.__html__ = lambda self: unicode(self)   
+    '''Monkeypatch Django to mimic Jinja2 behaviour'''
+    from django.utils import safestring
+    if not hasattr(safestring, '__html__'):
+        safestring.SafeString.__html__ = lambda self: str(self)
+        safestring.SafeUnicode.__html__ = lambda self: unicode(self)
 
 Rendering
 =========
@@ -135,14 +135,6 @@ by backwards-compatibility  concerns. However, if you are converting your
 templates anyway, it might be a good opportunity for this change.
 
 (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e
-
-Jinja2's ``TemplateSyntaxError`` (and potentially other exception types)
-are not compatible with Django's own template exceptions with respect to
-the TEMPLATE_DEBUG facility. If TEMPLATE_DEBUG is enabled and Jinja2 raises
-an exception, Django's error 500 page will sometimes not be able to handle
-it and crash. The solution is to disable the TEMPLATE_DEBUG setting in
-Django. See http://code.djangoproject.com/ticket/10216 for further
-information.
 
 ``coffin.template.loader`` is a port of ``django.template.loader`` and
 comes with a Jinja2-enabled version of ``get_template()``.
