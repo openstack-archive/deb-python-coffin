@@ -112,8 +112,7 @@ Example for a Jinja-enabled template library::
     register.object(my_function_name) # A global function/object
     register.test(my_test_name)       # A test function
 
-You may also define additional extensions, filters, tests, globals and
-constants via your ``settings.py``::
+You may also define additional extensions, filters, tests and globals via your ``settings.py``::
 
     JINJA2_FILTERS = (
         'path.to.myfilter',
@@ -125,12 +124,6 @@ constants via your ``settings.py``::
         'jinja2.ext.do',
     )
 
-    def MEDIA_URL():
-        return settings.MEDIA_URL
-
-    JINJA2_CONSTANTS = (
-        MEDIA_URL,
-    )        
 
 Other things of note
 ====================
@@ -143,10 +136,13 @@ templates anyway, it might be a good opportunity for this change.
 
 (*) http://groups.google.com/group/django-developers/browse_thread/thread/f323338045ac2e5e
 
-This version of coffin modifies Jinja 2's ``TemplateSyntaxError`` to be
-compatible with Django. So there is no need to disable ``TEMPLATE_DEBUG``.
-You can just keep `TEPMLATE_DEBUG=True`` in your settings to benefit from both
-Jinja 2 and Django's template debugging.
+Jinja2's ``TemplateSyntaxError`` (and potentially other exception types)
+are not compatible with Django's own template exceptions with respect to
+the TEMPLATE_DEBUG facility. If TEMPLATE_DEBUG is enabled and Jinja2 raises
+an exception, Django's error 500 page will sometimes not be able to handle
+it and crash. The solution is to disable the TEMPLATE_DEBUG setting in
+Django. See http://code.djangoproject.com/ticket/10216 for further
+information.
 
 ``coffin.template.loader`` is a port of ``django.template.loader`` and
 comes with a Jinja2-enabled version of ``get_template()``.

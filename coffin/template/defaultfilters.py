@@ -9,6 +9,7 @@ TODO: Most of the filters in here need to be updated for autoescaping.
 
 from coffin.template import Library
 from jinja2.runtime import Undefined
+# from jinja2 import Markup
 from jinja2 import filters
 
 register = Library()
@@ -106,5 +107,8 @@ def floatformat(value, arg=-1):
 
 @register.filter(jinja2_only=True)
 def default(value, default_value=u'', boolean=True):
+    """Make the default filter, if used without arguments, behave like
+    Django's own version.
+    """
     return filters.do_default(value, default_value, boolean)
 

@@ -14,7 +14,6 @@ _JINJA_I18N_EXTENSION_NAME = 'jinja2.ext.i18n'
 
 class CoffinEnvironment(Environment):
     def __init__(self, filters={}, globals={}, tests={}, loader=None, extensions=[], **kwargs):
-        from django.conf import settings
         if not loader:
             loader = loaders.ChoiceLoader(self._get_loaders())
         all_ext = self._get_all_extensions()
@@ -83,7 +82,7 @@ class CoffinEnvironment(Environment):
                 for f in os.listdir(path):
                     if f == '__init__.py' or f.startswith('.'):
                         continue
-                    
+
                     if f.endswith('.py'):
                         try:
                             # TODO: will need updating when #6587 lands
@@ -136,7 +135,7 @@ class CoffinEnvironment(Environment):
 
         # Next, add the globally defined extensions
         extensions.extend(list(getattr(settings, 'JINJA2_EXTENSIONS', [])))
-        def from_setting(setting, call=False):
+        def from_setting(setting):
             retval = {}
             setting = getattr(settings, setting, {})
             if isinstance(setting, dict):
@@ -146,15 +145,9 @@ class CoffinEnvironment(Environment):
                 for value in setting:
                     value = callable(value) and value or get_callable(value)
                     retval[value.__name__] = value
-
-            if call:
-                for k, v in retval.items():
-                    if callable(v):
-                        retval[k] = v()
             return retval
         filters.update(from_setting('JINJA2_FILTERS'))
         globals.update(from_setting('JINJA2_GLOBALS'))
-        globals.update(from_setting('JINJA2_CONSTANTS', True))
         tests.update(from_setting('JINJA2_TESTS'))
 
         # Finally, add extensions defined in application's templatetag libraries
