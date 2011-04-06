@@ -101,6 +101,9 @@ class CoffinEnvironment(Environment):
         from coffin.template import builtins as coffin_builtins
         from django.core.urlresolvers import get_callable
 
+        # Note that for extensions, the order in which we load the libraries
+        # is not maintained (https://github.com/mitsuhiko/jinja2/issues#issue/3).
+        # Extensions support priorities, which should be used instead.
         extensions, filters, globals, tests, attrs = [], {}, {}, {}, {}
         def _load_lib(lib):
             if not isinstance(lib, CoffinLibrary):
