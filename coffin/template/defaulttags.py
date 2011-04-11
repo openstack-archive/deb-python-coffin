@@ -178,6 +178,7 @@ class URLExtension(Extension):
                 viewname,
                 nodes.List(args),
                 nodes.Dict(kwargs),
+                nodes.Name('_current_app', 'load'),
             ], kwargs=kw)
 
         # if an as-clause is specified, write the result to context...
@@ -191,14 +192,15 @@ class URLExtension(Extension):
             return nodes.Output([make_call_node()]).set_lineno(tag.lineno)
 
     @classmethod
-    def _reverse(self, viewname, args, kwargs, fail=True):
+    def _reverse(self, viewname, args, kwargs, current_app, fail=True):
         from django.core.urlresolvers import reverse, NoReverseMatch
 
         # Try to look up the URL twice: once given the view name,
         # and again relative to what we guess is the "main" app.
         url = ''
         try:
-            url = reverse(viewname, args=args, kwargs=kwargs)
+            url = reverse(viewname, args=args, kwargs=kwargs,
+                current_app=current_app)
         except NoReverseMatch:
             projectname = settings.SETTINGS_MODULE.split('.')[0]
             try:
