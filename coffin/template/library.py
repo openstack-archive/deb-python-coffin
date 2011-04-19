@@ -137,7 +137,7 @@ class Library(DjangoLibrary):
         If your extension needs to be configured by setting environment
         attributes, you can can pass key-value pairs via ``environment``.
         """
-        if isinstance(name_or_node, Jinja2Extension):
+        if isinstance(name_or_node, type) and issubclass(name_or_node, Jinja2Extension):
             if compile_function:
                 raise InvalidTemplateLibrary('"compile_function" argument not supported for Jinja2 extensions')
             self.jinja2_extensions.append(name_or_node)
