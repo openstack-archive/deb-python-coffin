@@ -49,7 +49,7 @@ class Template(_Jinja2Template):
             context = dict_from_django_context(context)
         assert isinstance(context, dict)  # Required for **-operator.
         # It'd be nice to move this only into the test env
-        signals.template_rendered.send(sender=self, template=self, context=context)
+        signals.template_rendered.send(sender=self, template=self, context=Context(context))
         return super(Template, self).render(**context)
 
 def dict_from_django_context(context):
