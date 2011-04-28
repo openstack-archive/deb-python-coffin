@@ -192,7 +192,7 @@ class URLExtension(Extension):
             return nodes.Output([make_call_node()]).set_lineno(tag.lineno)
 
     @classmethod
-    def _reverse(self, viewname, args, kwargs, current_app, fail=True):
+    def _reverse(self, viewname, args, kwargs, current_app=None, fail=True):
         from django.core.urlresolvers import reverse, NoReverseMatch
 
         # Try to look up the URL twice: once given the view name,

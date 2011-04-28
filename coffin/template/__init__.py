@@ -59,6 +59,8 @@ def dict_from_django_context(context):
         return context
     else:
         dict_ = {}
+        dict_['_current_app'] = getattr(context, 'current_app', None)
+
         # Newest dicts are up front, so update from oldest to newest.
         for subcontext in reversed(list(context)):
             dict_.update(dict_from_django_context(subcontext))

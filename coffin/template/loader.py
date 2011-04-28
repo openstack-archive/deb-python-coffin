@@ -52,12 +52,6 @@ def render_to_string(template_name, dictionary=None, context_instance=None):
         context_instance.update(dictionary)
     else:
         context_instance = dictionary
-
-    # Jinja2 internally converts the context instance to a dictionary, thus
-    # we need to store the current_app attribute as a key/value pair
-    context_instance['_current_app'] = getattr(
-        context_instance, 'current_app', None)
-
     return template.render(context_instance)
 
 
