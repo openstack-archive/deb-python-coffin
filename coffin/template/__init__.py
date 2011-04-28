@@ -59,6 +59,8 @@ def dict_from_django_context(context):
         return context
     else:
         dict_ = {}
+        # Jinja2 internally converts the context instance to a dictionary, thus
+        # we need to store the current_app attribute as a key/value pair.
         dict_['_current_app'] = getattr(context, 'current_app', None)
 
         # Newest dicts are up front, so update from oldest to newest.
