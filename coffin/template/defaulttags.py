@@ -134,13 +134,13 @@ class URLExtension(Extension):
             # as view + argument, while still supporting
             # {% url "app.views.post"|filter %}. Essentially, what we do is
             # rather than let ``parser.parse_primary()`` deal with a "string"
-            # token, we do so ourselves, and let parse_primary() handle all
+            # token, we do so ourselves, and let parse_expression() handle all
             # other cases.
             if stream.look().test('string'):
                 token = stream.next()
                 viewname = nodes.Const(token.value, lineno=token.lineno)
             else:
-                viewname = parser.parse_primary()
+                viewname = parser.parse_expression()
         else:
             # parse valid tokens and manually build a string from them
             bits = []
