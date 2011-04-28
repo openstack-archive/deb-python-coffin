@@ -81,6 +81,16 @@ def test_url():
             assert actual_result == expected_result
 
 
+def test_url_current_app():
+    """Test that the url can deal with the current_app context setting."""
+    from coffin.template.loader import get_template_from_string
+    from django.template import RequestContext
+    from django.http import HttpRequest
+    t = get_template_from_string('{% url testapp:the-index-view %}')
+    assert t.render(RequestContext(HttpRequest())) == '/app/one/'
+    assert t.render(RequestContext(HttpRequest(), current_app="two")) == '/app/two/'
+
+
 def test_with():
     from coffin.template.defaulttags import WithExtension
     env = Environment(extensions=[WithExtension])
