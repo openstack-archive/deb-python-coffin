@@ -52,6 +52,7 @@ class Library(DjangoLibrary):
         super(Library, self).__init__()
         self.jinja2_filters = {}
         self.jinja2_extensions = []
+        self.jinja2_environment_attrs = {}
         self.jinja2_globals = {}
         self.jinja2_tests = {}
 
@@ -121,7 +122,7 @@ class Library(DjangoLibrary):
             raise InvalidTemplateLibrary("Unsupported arguments to "
                 "Library.object: (%r, %r)", (name, func))
 
-    def tag(self, name_or_node=None, compile_function=None):
+    def tag(self, name_or_node=None, compile_function=None, environment={}):
         """Register a Django template tag (1) or Jinja 2 extension (2).
 
         For (1), supports the same invocation syntax as the original
@@ -132,13 +133,19 @@ class Library(DjangoLibrary):
         following syntax is supported:
 
             register.tag(MyJinjaExtensionNode)
+
+        If your extension needs to be configured by setting environment
+        attributes, you can can pass key-value pairs via ``environment``.
         """
-        if isinstance(name_or_node, Jinja2Extension):
+        if isinstance(name_or_node, type) and issubclass(name_or_node, Jinja2Extension):
             if compile_function:
                 raise InvalidTemplateLibrary('"compile_function" argument not supported for Jinja2 extensions')
             self.jinja2_extensions.append(name_or_node)
+            self.jinja2_environment_attrs.update(environment)
             return name_or_node
         else:
+            if environment:
+                raise InvalidTemplateLibrary('"environment" argument not supported for Django tags')
             return super(Library, self).tag(name_or_node, compile_function)
 
     def tag_function(self, func_or_node):
