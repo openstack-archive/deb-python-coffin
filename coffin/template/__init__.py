@@ -53,6 +53,11 @@ class Template(_Jinja2Template):
         signals.template_rendered.send(sender=self, template=self, context=Context(context))
         return super(Template, self).render(**context)
 
+    @property
+    def origin(self):
+        return Origin(self.filename)
+
+
 def dict_from_django_context(context):
     """Flattens a Django :class:`django.template.context.Context` object.
     """
