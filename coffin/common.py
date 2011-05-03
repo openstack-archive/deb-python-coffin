@@ -156,6 +156,7 @@ class CoffinEnvironment(Environment):
         # Finally, add extensions defined in application's templatetag libraries
         for lib in self._get_templatelibs():
             _load_lib(lib)
+            attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
 
         return dict(
             extensions=extensions,
