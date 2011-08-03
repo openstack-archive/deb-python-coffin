@@ -8,6 +8,7 @@ from jinja2 import Template as _Jinja2Template
 # Merge with ``django.template``.
 from django.template import __all__
 from django.template import *
+from django.template import Origin
 from django.test import signals
 
 # Override default library class with ours

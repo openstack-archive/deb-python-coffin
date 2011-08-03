@@ -27,6 +27,9 @@ def test_template_class():
     c1.update(c2)
     assert Template('{{foo}}').render(c1) == 'bar'
 
+    # There is a "origin" attribute for Django compatibility
+    assert Template('{{foo}}').origin.name == '<template>'
+
 
 def test_render_to_string():
     # [bug] Test that the values given directly do overwrite does that
