@@ -1,5 +1,10 @@
 from os import path
 
+
+DATABASES = {
+    'default': {}
+}
+
 INSTALLED_APPS = (
     'templatelibs_app',
     'feeds_app',
