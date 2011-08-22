@@ -28,7 +28,7 @@ def test_nodes_and_extensions():
     assert env.from_string('a{% foo_ex %}b').render() == 'a{my_foo}b'
 
     # Django tags, loaded from a Coffin library
-    assert Template('{% load foo_tag %}a{% foo_coffin %}b').render(Context()) == 'a{foo}b'
+    assert Template('{% load django_tags %}a{% foo_coffin %}b').render(Context()) == 'a{foo}b'
 
 
 def test_filters():
@@ -38,26 +38,26 @@ def test_filters():
 
     # Filter registered with a Coffin library is available in Django and Jinja2
     assert env.from_string('a{{ "b"|foo }}c').render() == 'a{foo}c'
-    assert Template('{% load foo_filter %}a{{ "b"|foo }}c').render(Context()) == 'a{foo}c'
+    assert Template('{% load portable_filters %}a{{ "b"|foo }}c').render(Context()) == 'a{foo}c'
 
     # Filter registered with a Django library is also available in Jinja2
-    Template('{% load foo_filter_django %}{{ "b"|foo_django }}').render(Context())
+    Template('{% load django_library %}{{ "b"|foo_django }}').render(Context())
     assert env.from_string('a{{ "b"|foo }}c').render() == 'a{foo}c'
 
     # Some filters, while registered with a Coffin library, are only
     # available in Jinja2:
     # - when using @environmentfilter
     env.from_string('{{ "b"|environment }}')
-    assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|environment }}')
+    assert_raises(Exception, Template, '{% load jinja2_filters %}{{ "b"|environment }}')
     # - when using @contextfilter
     env.from_string('{{ "b"|context }}')
-    assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|context }}')
+    assert_raises(Exception, Template, '{% load jinja2_filters %}{{ "b"|context }}')
     # - when requiring more than one argument
     env.from_string('{{ "b"|multiarg(1,2) }}')
-    assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|multiarg }}')
+    assert_raises(Exception, Template, '{% load jinja2_filters %}{{ "b"|multiarg }}')
     # - when Jinja2-exclusivity is explicitly requested
     env.from_string('{{ "b"|jinja_forced }}')
-    assert_raises(Exception, Template, '{% load jinjafilters %}{{ "b"|jinja_forced }}')
+    assert_raises(Exception, Template, '{% load jinja2_filters %}{{ "b"|jinja_forced }}')
     # [bug] Jinja2-exclusivity caused the compatibility layer to be not
     # applied, causing for example safe strings to be escaped.
     assert env.from_string('{{ "><"|django_jinja_forced }}').render() == '><'
