@@ -31,6 +31,15 @@ def test_nodes_and_extensions():
     assert Template('{% load django_tags %}a{% foo_coffin %}b').render(Context()) == 'a{foo}b'
 
 
+def test_objects():
+    """For coffin, global objects can be registered.
+    """
+    from coffin.common import env
+
+    # Jinja2 global objects, loaded from a Coffin library
+    assert env.from_string('{{ hello("John") }}').render() == 'Hello John'
+
+
 def test_filters():
     """Test availability of registered filters.
     """
