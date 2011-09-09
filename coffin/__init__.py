@@ -14,7 +14,7 @@ reasonable.
 
 
 __all__ = ('__version__', '__build__', '__docformat__', 'get_revision')
-__version__ = (0, 3, '6', 'dev')
+__version__ = (0, 3, '6')
 __docformat__ = 'restructuredtext en'
 
 import os
