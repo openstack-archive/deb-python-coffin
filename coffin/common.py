@@ -50,7 +50,8 @@ class CoffinEnvironment(Environment):
         from coffin.template.loaders import jinja_loader_from_django_loader
 
         from django.conf import settings
-        for loader in settings.TEMPLATE_LOADERS:
+        _loaders = getattr(settings, 'JINJA2_TEMPLATE_LOADERS', settings.TEMPLATE_LOADERS)
+        for loader in _loaders:
             if isinstance(loader, basestring):
                 loader_obj = jinja_loader_from_django_loader(loader)
                 if loader_obj:
