@@ -7,7 +7,7 @@ from coffin.views.decorators import template_response
 __all__ = ['ArchiveIndexView', 'YearArchiveIndexView', 'MonthArchiveIndexView', 'WeekArchiveIndexView',
         'DayArchiveIndexView', 'TodayArchiveIndexView', 'DateDetailView']
 
-ArchiveIndexView, YearArchiveIndexView, MonthArchiveIndexView, WeekArchiveIndexView,
+ArchiveIndexView, YearArchiveIndexView, MonthArchiveIndexView, WeekArchiveIndexView,\
         DayArchiveIndexView, TodayArchiveIndexView, DateDetailView = map(template_response,
             (_ArchiveIndexView, _YearArchiveIndexView, _MonthArchiveIndexView, _WeekArchiveIndexView,
         _DayArchiveIndexView, _TodayArchiveIndexView, _DateDetailView))
