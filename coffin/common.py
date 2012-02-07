@@ -28,7 +28,7 @@ class CoffinEnvironment(Environment):
         # the proper priority), so we want to assign to these attributes.
         self.filters = all_ext['filters'].copy()
         self.filters.update(filters)
-        self.globals = all_ext['globals'].copy()
+        self.globals.update(all_ext['globals'])
         self.globals.update(globals)
         self.tests = all_ext['tests'].copy()
         self.tests.update(tests)
