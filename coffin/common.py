@@ -48,18 +48,29 @@ class CoffinEnvironment(Environment):
         loaders = []
 
         from coffin.template.loaders import jinja_loader_from_django_loader
+        from jinja2.loaders import BaseLoader as JinjaLoader
 
         from django.conf import settings
         _loaders = getattr(settings, 'JINJA2_TEMPLATE_LOADERS', settings.TEMPLATE_LOADERS)
         for loader in _loaders:
-            if isinstance(loader, basestring):
-                loader_obj = jinja_loader_from_django_loader(loader)
-                if loader_obj:
-                    loaders.append(loader_obj)
-                else:
-                    warnings.warn('Cannot translate loader: %s' % loader)
-            else: # It's assumed to be a Jinja2 loader instance.
+            if isinstance(loader, JinjaLoader):
                 loaders.append(loader)
+            else:
+                loader_name = args = None
+                if isinstance(loader, basestring):
+                    loader_name = loader
+                    args = []
+                elif isinstance(loader, (tuple, list)):
+                    loader_name = loader[0]
+                    args = loader[1]
+
+                if loader_name:
+                    loader_obj = jinja_loader_from_django_loader(loader_name, args)
+                    if loader_obj:
+                        loaders.append(loader_obj)
+                        continue
+
+                warnings.warn('Cannot translate loader: %s' % loader)
         return loaders
 
 
