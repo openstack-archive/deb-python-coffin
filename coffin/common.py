@@ -150,23 +150,35 @@ class CoffinEnvironment(Environment):
 
         # Next, add the globally defined extensions
         extensions.extend(list(getattr(settings, 'JINJA2_EXTENSIONS', [])))
-        def from_setting(setting):
+        def from_setting(setting, values_must_be_callable = False):
             retval = {}
             setting = getattr(settings, setting, {})
             if isinstance(setting, dict):
                 for key, value in setting.iteritems():
-                    retval[key] = callable(value) and value or get_callable(value)
+                    if values_must_be_callable and not callable(value):
+                        value = get_callable(value)
+                    retval[key] = value
             else:
                 for value in setting:
-                    value = callable(value) and value or get_callable(value)
+                    if values_must_be_callable and not callable(value):
+                        value = get_callable(value)
                     retval[value.__name__] = value
             return retval
-        filters.update(from_setting('JINJA2_FILTERS'))
+
+        tests.update(from_setting('JINJA2_TESTS', True))
+        filters.update(from_setting('JINJA2_FILTERS', True))
         globals.update(from_setting('JINJA2_GLOBALS'))
-        tests.update(from_setting('JINJA2_TESTS'))
+        
 
         # Finally, add extensions defined in application's templatetag libraries
-        for lib in self._get_templatelibs():
+        libraries = self._get_templatelibs()
+
+        # Load custom libraries.
+        from django.template import get_library
+        for libname in getattr(settings, 'JINJA2_DJANGO_TEMPLATETAG_LIBRARIES', ()):
+            libraries.append(get_library(libname))
+
+        for lib in libraries:
             _load_lib(lib)
             attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
 
