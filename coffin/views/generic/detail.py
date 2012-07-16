@@ -1,6 +1,12 @@
-from django.views.generic.detail import DetailView as _DetailView
-from coffin.views.decorators import template_response
+import django.views.generic.detail as _generic_detail
+from coffin.views.generic.base import TemplateResponseMixin as JinjaTemplateResponseMixin
 
-__all__ = ['DetailView']
+class SingleObjectTemplateResponseMixin(JinjaTemplateResponseMixin, _generic_detail.TemplateResponseMixin):
+    """
+    Equivalent of django mixin SingleObjectTemplateResponseMixin, but uses Jinja template renderer.
+    """
 
-DetailView = template_response(_DetailView)
+class DetailView(SingleObjectTemplateResponseMixin, _generic_detail.BaseDetailView):
+    """
+    Equivalent of django generic view DetailView, but uses Jinja template renderer.
+    """

@@ -1,6 +1,13 @@
-from django.views.generic.base import RedirectView, TemplateView as _TemplateView
-from coffin.views.decorators import template_response
+import django.views.generic.base as _generic_base
+from coffin.template.response import TemplateResponse as JinjaTemplateResponse
 
-__all__ = ['RedirectView', 'TemplateView']
+class TemplateResponseMixin(_generic_base.TemplateResponseMixin):
+    """
+    A mixin that can be used to render a template using Jinja.
+    """
+    response_class = JinjaTemplateResponse
 
-TemplateView = template_response(_TemplateView)
+class TemplateView(TemplateResponseMixin, _generic_base.TemplateView):
+    """
+    A view that renders a template using Jinja.
+    """

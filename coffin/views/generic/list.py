@@ -1,6 +1,12 @@
-from django.views.generic.list import ListView as _ListView
-from coffin.views.decorators import template_response
+import django.views.generic.list as _generic_list
+from coffin.views.generic.base import TemplateResponseMixin as JinjaTemplateResponseMixin
 
-__all__ = ['ListView']
+class MultipleObjectTemplateResponseMixin(JinjaTemplateResponseMixin, _generic_list.MultipleObjectTemplateResponseMixin):
+    """
+    Equivalent of django mixin MultipleObjectTemplateResponseMixin, but uses Jinja template renderer.
+    """
 
-ListView = template_response(_ListView)
+class ListView(MultipleObjectTemplateResponseMixin, _generic_list.BaseListView):
+    """
+    Equivalent of django generic view ListView, but uses Jinja template renderer.
+    """
