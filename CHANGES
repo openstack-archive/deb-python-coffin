@@ -1,3 +1,11 @@
+0.3.7 (2012-09-29)
+    - Support for Django 1.3 class-based views (Kirill Zaitsev,
+      Dmitry Panteleev)
+    - Loader for *.jinja files (Aarni Koskela)
+    - makemessages command now supports whitespace stripping tags
+      (Dmitry Panteleev)
+    - Now supports Django's CachedLoader.
+
 0.3.6 (2011-09-09)
-    - Re-release of 0.3.5, containing the correct repository 
+    - Re-release of 0.3.5, containing the correct repository
       state this time.

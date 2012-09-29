@@ -2,7 +2,7 @@
 Coffin
 ~~~~~~
 
-`Coffin <http://www.github.com/dcramer/coffin>` is a package that resolves the
+`Coffin <http://www.github.com/coffin/coffin>` is a package that resolves the
 impedance mismatch between `Django <http://www.djangoproject.com/>` and `Jinja2
 <http://jinja.pocoo.org/2/>` through various adapters. The aim is to use Coffin
 as a drop-in replacement for Django's template system to whatever extent is
@@ -14,7 +14,7 @@ reasonable.
 
 
 __all__ = ('__version__', '__build__', '__docformat__', 'get_revision')
-__version__ = (0, 3, '6')
+__version__ = (0, 3, '7')
 __docformat__ = 'restructuredtext en'
 
 import os

@@ -28,7 +28,7 @@ class CoffinEnvironment(Environment):
         # the proper priority), so we want to assign to these attributes.
         self.filters = all_ext['filters'].copy()
         self.filters.update(filters)
-        self.globals = all_ext['globals'].copy()
+        self.globals.update(all_ext['globals'])
         self.globals.update(globals)
         self.tests = all_ext['tests'].copy()
         self.tests.update(tests)
@@ -48,17 +48,29 @@ class CoffinEnvironment(Environment):
         loaders = []
 
         from coffin.template.loaders import jinja_loader_from_django_loader
+        from jinja2.loaders import BaseLoader as JinjaLoader
 
         from django.conf import settings
-        for loader in settings.TEMPLATE_LOADERS:
-            if isinstance(loader, basestring):
-                loader_obj = jinja_loader_from_django_loader(loader)
-                if loader_obj:
-                    loaders.append(loader_obj)
-                else:
-                    warnings.warn('Cannot translate loader: %s' % loader)
-            else: # It's assumed to be a Jinja2 loader instance.
+        _loaders = getattr(settings, 'JINJA2_TEMPLATE_LOADERS', settings.TEMPLATE_LOADERS)
+        for loader in _loaders:
+            if isinstance(loader, JinjaLoader):
                 loaders.append(loader)
+            else:
+                loader_name = args = None
+                if isinstance(loader, basestring):
+                    loader_name = loader
+                    args = []
+                elif isinstance(loader, (tuple, list)):
+                    loader_name = loader[0]
+                    args = loader[1]
+
+                if loader_name:
+                    loader_obj = jinja_loader_from_django_loader(loader_name, args)
+                    if loader_obj:
+                        loaders.append(loader_obj)
+                        continue
+
+                warnings.warn('Cannot translate loader: %s' % loader)
         return loaders
 
 
@@ -138,23 +150,35 @@ class CoffinEnvironment(Environment):
 
         # Next, add the globally defined extensions
         extensions.extend(list(getattr(settings, 'JINJA2_EXTENSIONS', [])))
-        def from_setting(setting):
+        def from_setting(setting, values_must_be_callable = False):
             retval = {}
             setting = getattr(settings, setting, {})
             if isinstance(setting, dict):
                 for key, value in setting.iteritems():
-                    retval[key] = callable(value) and value or get_callable(value)
+                    if values_must_be_callable and not callable(value):
+                        value = get_callable(value)
+                    retval[key] = value
             else:
                 for value in setting:
-                    value = callable(value) and value or get_callable(value)
+                    if values_must_be_callable and not callable(value):
+                        value = get_callable(value)
                     retval[value.__name__] = value
             return retval
-        filters.update(from_setting('JINJA2_FILTERS'))
+
+        tests.update(from_setting('JINJA2_TESTS', True))
+        filters.update(from_setting('JINJA2_FILTERS', True))
         globals.update(from_setting('JINJA2_GLOBALS'))
-        tests.update(from_setting('JINJA2_TESTS'))
+        
 
         # Finally, add extensions defined in application's templatetag libraries
-        for lib in self._get_templatelibs():
+        libraries = self._get_templatelibs()
+
+        # Load custom libraries.
+        from django.template import get_library
+        for libname in getattr(settings, 'JINJA2_DJANGO_TEMPLATETAG_LIBRARIES', ()):
+            libraries.append(get_library(libname))
+
+        for lib in libraries:
             _load_lib(lib)
             attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
 
