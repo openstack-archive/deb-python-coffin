@@ -1,4 +1,7 @@
+import re
 from jinja2 import loaders
+
+match_loader = re.compile(r'^(django|coffin)\.')
 
 
 def jinja_loader_from_django_loader(django_loader, args=None):
@@ -9,7 +12,7 @@ def jinja_loader_from_django_loader(django_loader, args=None):
     :return: The similarly-behaving Jinja loader, or None if a similar loader
         could not be found.
     """
-    if not django_loader.startswith('django.'):
+    if not match_loader.match(django_loader):
         return None
     for substr, func in _JINJA_LOADER_BY_DJANGO_SUBSTR.iteritems():
         if substr in django_loader:
@@ -46,6 +49,8 @@ _JINJA_LOADER_BY_DJANGO_SUBSTR = { # {substr: callable, ...}
     'app_directories': _make_jinja_app_loader,
     'filesystem': _make_jinja_filesystem_loader,
     'cached': _make_jinja_cached_loader,
+    'AppLoader': _make_jinja_app_loader,
+    'FileSystemLoader': _make_jinja_filesystem_loader,
 }
 
 
