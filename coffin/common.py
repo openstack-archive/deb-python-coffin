@@ -73,7 +73,6 @@ class CoffinEnvironment(Environment):
                 warnings.warn('Cannot translate loader: %s' % loader)
         return loaders
 
-
     def _get_templatelibs(self):
         """Return an iterable of template ``Library`` instances.
 
@@ -81,30 +80,35 @@ class CoffinEnvironment(Environment):
         register all libraries globally.
         """
         from django.conf import settings
-        from django.template import get_library, InvalidTemplateLibrary
+        from django.template import (
+            get_library, import_library, InvalidTemplateLibrary)
 
         libs = []
-        for a in settings.INSTALLED_APPS:
+        for app in settings.INSTALLED_APPS:
+            ns = app + '.templatetags'
             try:
-                path = __import__(a + '.templatetags', {}, {}, ['__file__']).__file__
+                path = __import__(ns, {}, {}, ['__file__']).__file__
                 path = os.path.dirname(path)  # we now have the templatetags/ directory
             except ImportError:
                 pass
             else:
-                for f in os.listdir(path):
-                    if f == '__init__.py' or f.startswith('.'):
+                for filename in os.listdir(path):
+                    if filename == '__init__.py' or filename.startswith('.'):
                         continue
 
-                    if f.endswith('.py'):
+                    if filename.endswith('.py'):
                         try:
-                            # TODO: will need updating when #6587 lands
-                            # libs.append(get_library(
-                            #     "django.templatetags.%s" % os.path.splitext(f)[0]))
-                            l = get_library(os.path.splitext(f)[0])
+                            module = "%s.%s" % (ns, os.path.splitext(filename)[0])
+                            l = import_library(module)
                             libs.append(l)
 
                         except InvalidTemplateLibrary:
                             pass
+
+        # In addition to loading application libraries, support a custom list
+        for libname in getattr(settings, 'JINJA2_DJANGO_TEMPLATETAG_LIBRARIES', ()):
+            libs.append(get_library(libname))
+
         return libs
 
     def _get_all_extensions(self):
@@ -168,19 +172,10 @@ class CoffinEnvironment(Environment):
         tests.update(from_setting('JINJA2_TESTS', True))
         filters.update(from_setting('JINJA2_FILTERS', True))
         globals.update(from_setting('JINJA2_GLOBALS'))
-        
 
         # Finally, add extensions defined in application's templatetag libraries
-        libraries = self._get_templatelibs()
-
-        # Load custom libraries.
-        from django.template import get_library
-        for libname in getattr(settings, 'JINJA2_DJANGO_TEMPLATETAG_LIBRARIES', ()):
-            libraries.append(get_library(libname))
-
-        for lib in libraries:
+        for lib in self._get_templatelibs():
             _load_lib(lib)
-            attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
 
         return dict(
             extensions=extensions,
