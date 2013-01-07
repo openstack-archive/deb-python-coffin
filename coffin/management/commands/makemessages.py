@@ -27,24 +27,40 @@ http://stackoverflow.com/questions/2090717/getting-translation-strings-for-jinja
 import re
 from django.core.management.commands import makemessages
 from django.utils.translation import trans_real
+from django.template import BLOCK_TAG_START, BLOCK_TAG_END
 
+strip_whitespace_right = re.compile(r"(%s-?\s*(trans|pluralize).*?-%s)\s+" % (BLOCK_TAG_START, BLOCK_TAG_END), re.U)
+strip_whitespace_left = re.compile(r"\s+(%s-\s*(endtrans|pluralize).*?-?%s)" % (BLOCK_TAG_START, BLOCK_TAG_END), re.U)
+
+def strip_whitespaces(src):
+    src = strip_whitespace_left.sub(r'\1', src)
+    src = strip_whitespace_right.sub(r'\1', src)
+    return src
 
 class Command(makemessages.Command):
 
     def handle(self, *args, **options):
         old_endblock_re = trans_real.endblock_re
         old_block_re = trans_real.block_re
+        old_templatize = trans_real.templatize
         # Extend the regular expressions that are used to detect
         # translation blocks with an "OR jinja-syntax" clause.
         trans_real.endblock_re = re.compile(
-            trans_real.endblock_re.pattern + '|' + r"""^\s*endtrans$""")
+            trans_real.endblock_re.pattern + '|' + r"""^-?\s*endtrans\s*-?$""")
         trans_real.block_re = re.compile(
-            trans_real.block_re.pattern + '|' + r"""^\s*trans(?:\s+(?!'|")(?=.*?=.*?)|$)""")
+            trans_real.block_re.pattern + '|' + r"""^-?\s*trans(?:\s+(?!'|")(?=.*?=.*?)|-?$)""")
         trans_real.plural_re = re.compile(
-            trans_real.plural_re.pattern + '|' + r"""^\s*pluralize(?:\s+.+|$)""")
+            trans_real.plural_re.pattern + '|' + r"""^-?\s*pluralize(?:\s+.+|-?$)""")
+
+        def my_templatize(src, origin=None):
+            new_src = strip_whitespaces(src)
+            return old_templatize(new_src, origin)
+
+        trans_real.templatize = my_templatize
 
         try:
             super(Command, self).handle(*args, **options)
         finally:
             trans_real.endblock_re = old_endblock_re
             trans_real.block_re = old_block_re
+            trans_real.templatize = old_templatize

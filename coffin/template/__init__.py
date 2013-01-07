@@ -88,6 +88,10 @@ def add_to_builtins(module_name):
     You can still use Django's own ``add_to_builtins`` to register
     directly with Django and bypass Coffin.
 
+    Once thing that is special about Coffin is that because {% load %}
+    is not supported in Coffin, *everything* it provides must be
+    registered through the builtins.
+
     TODO: Allow passing path to (or reference of) extensions and
     filters directly. This would make it easier to use this function
     with 3rd party Jinja extensions that do not know about Coffin and
@@ -103,4 +107,5 @@ def add_to_builtins(module_name):
 
 add_to_builtins('coffin.template.defaulttags')
 add_to_builtins('coffin.template.defaultfilters')
+add_to_builtins('coffin.templatetags.static')
 
