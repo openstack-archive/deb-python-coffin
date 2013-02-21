@@ -42,6 +42,7 @@ def date(value, arg=None):
     """Formats a date according to the given format."""
     if value is None or isinstance(value, Undefined):
         return u''
+    from django.conf import settings
     from django.utils import formats
     from django.utils.dateformat import format
     if arg is None:
@@ -59,10 +60,11 @@ def time(value, arg=None):
     """Formats a time according to the given format."""
     if value is None or isinstance(value, Undefined):
         return u''
-    if arg is None:
-        arg = settings.TIME_FORMAT
+    from django.conf import settings
     from django.utils import formats
     from django.utils.dateformat import time_format
+    if arg is None:
+        arg = settings.TIME_FORMAT
     try: 
         return formats.time_format(value, arg) 
     except AttributeError:
