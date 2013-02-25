@@ -47,7 +47,8 @@ been ported in Coffin:
 
 Jinja 2's ``i18n`` extension is hooked up with Django, and a custom version
 of makemessages supports string extraction from both Jinja2 and Django
-templates.
+templates. Just add 'coffin' to your INSTALLED_APPS and run makemessages as
+usual, specifying additional Jinja extensions if necessary via the -e option.
 
 Autoescape
 ==========
