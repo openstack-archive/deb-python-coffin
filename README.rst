@@ -19,7 +19,7 @@ Coffin currently makes the following Django tags available in Jinja:
 - {% spaceless %}
 
 - {% url %} - additionally, a ``"view"|url()`` filter is also
-  available.
+  available. Or use ``view|url()`` for Django 1.5 style lookups by the value of ``view``.
 
 - {% with %}
 
