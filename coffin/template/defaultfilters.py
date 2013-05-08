@@ -39,23 +39,39 @@ def timeuntil(value, *args):
 
 @register.jinja2_filter(jinja2_only=True)
 def date(value, arg=None):
+    """Formats a date according to the given format."""
     if value is None or isinstance(value, Undefined):
         return u''
     from django.conf import settings
+    from django.utils import formats
     from django.utils.dateformat import format
     if arg is None:
         arg = settings.DATE_FORMAT
-    return format(value, arg)
+    try: 
+        return formats.date_format(value, arg) 
+    except AttributeError:
+        try: 
+            return format(value, arg) 
+        except AttributeError:
+            return ''
 
 @register.jinja2_filter(jinja2_only=True)
 def time(value, arg=None):
+    """Formats a time according to the given format."""
     if value is None or isinstance(value, Undefined):
         return u''
     from django.conf import settings
+    from django.utils import formats
     from django.utils.dateformat import time_format
     if arg is None:
         arg = settings.TIME_FORMAT
-    return time_format(value, arg)
+    try: 
+        return formats.time_format(value, arg) 
+    except AttributeError:
+        try: 
+            return time_format(value, arg) 
+        except AttributeError:
+            return ''
 
 @register.jinja2_filter(jinja2_only=True)
 def truncatewords(value, length):
