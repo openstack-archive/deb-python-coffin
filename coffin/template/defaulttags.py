@@ -327,9 +327,9 @@ class CacheExtension(Extension):
             [], [], body).set_lineno(lineno)
 
     def _cache_support(self, expire_time, fragm_name, vary_on, lineno, caller):
+        from hashlib import md5
         from django.core.cache import cache   # delay depending in settings
         from django.utils.http import urlquote
-        from django.utils.hashcompat import md5_constructor
 
         try:
             expire_time = int(expire_time)
@@ -338,7 +338,7 @@ class CacheExtension(Extension):
                 'value: %r' % (list(self.tags)[0], expire_time), lineno)
 
         args_string = u':'.join([urlquote(v) for v in vary_on])
-        args_md5 = md5_constructor(args_string)
+        args_md5 = md5(args_string)
         cache_key = 'template.cache.%s.%s' % (fragm_name, args_md5.hexdigest())
         value = cache.get(cache_key)
         if value is None:
