@@ -10,6 +10,31 @@ from django.views.decorators.csrf import csrf_protect
 
 from coffin.template import RequestContext, loader
 
+
+def get_flatpages(starts_with=None, user=None, site_id=None):
+    """
+    Context-function similar to get_flatpages tag in Django templates.
+    Add it to coffin env globals if you need it in non-flat pages.
+
+    Usage:
+        <ul>
+            {% for page in get_flatpages(starts_with='/about/', user=user, site_id=site.pk) %}
+                <li><a href="{{ page.url }}">{{ page.title }}</a></li>
+            {% endfor %}
+        </ul>
+
+    """
+    flatpages = FlatPage.objects.filter(sites__id=site_id or settings.SITE_ID)
+
+    if starts_with:
+        flatpages = flatpages.filter(url__startswith=starts_with)
+
+    if not user or not user.is_authenticated():
+        flatpages = flatpages.filter(registration_required=False)
+
+    return flatpages
+
+
 # This view is called from FlatpageFallbackMiddleware.process_response
 # when a 404 is raised, which often means CsrfViewMiddleware.process_view
 # has not been called even if CsrfViewMiddleware is installed. So we need
@@ -49,6 +74,7 @@ def flatpage(request, url):
 
     c = RequestContext(request, {
         'flatpage': f,
+        'get_flatpages': get_flatpages,
     })
     response = HttpResponse(t.render(c))
     populate_xheaders(request, response, FlatPage, f.id)
