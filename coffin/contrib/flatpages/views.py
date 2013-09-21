@@ -10,7 +10,6 @@ from django.views.decorators.csrf import csrf_protect
 
 from coffin.template import RequestContext, loader
 
-
 # This view is called from FlatpageFallbackMiddleware.process_response
 # when a 404 is raised, which often means CsrfViewMiddleware.process_view
 # has not been called even if CsrfViewMiddleware is installed. So we need
@@ -50,7 +49,6 @@ def flatpage(request, url):
 
     c = RequestContext(request, {
         'flatpage': f,
-        'get_flatpages': get_flatpages,
     })
     response = HttpResponse(t.render(c))
     populate_xheaders(request, response, FlatPage, f.id)
