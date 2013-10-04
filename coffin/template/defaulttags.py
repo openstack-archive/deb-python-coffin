@@ -198,13 +198,14 @@ class URLExtension(Extension):
         # Try to look up the URL twice: once given the view name,
         # and again relative to what we guess is the "main" app.
         url = ''
+        urlconf=kwargs.pop('urlconf', None)
         try:
-            url = reverse(viewname, args=args, kwargs=kwargs,
+            url = reverse(viewname, urlconf=urlconf, args=args, kwargs=kwargs,
                 current_app=current_app)
         except NoReverseMatch:
             projectname = settings.SETTINGS_MODULE.split('.')[0]
             try:
-                url = reverse(projectname + '.' + viewname,
+                url = reverse(projectname + '.' + viewname, urlconf=urlconf, 
                               args=args, kwargs=kwargs)
             except NoReverseMatch:
                 if fail:
