@@ -1,10 +1,10 @@
+# coding=utf-8
 
 from django.contrib.flatpages.models import FlatPage
 from django.contrib.flatpages.views import DEFAULT_TEMPLATE
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
-from django.core.xheaders import populate_xheaders
 from django.utils.safestring import mark_safe
 from django.views.decorators.csrf import csrf_protect
 
@@ -51,5 +51,4 @@ def flatpage(request, url):
         'flatpage': f,
     })
     response = HttpResponse(t.render(c))
-    populate_xheaders(request, response, FlatPage, f.id)
     return response
