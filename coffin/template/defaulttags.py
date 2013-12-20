@@ -202,14 +202,14 @@ class URLExtension(Extension):
         try:
             url = reverse(viewname, urlconf=urlconf, args=args, kwargs=kwargs,
                 current_app=current_app)
-        except NoReverseMatch:
+        except NoReverseMatch as ex:
             projectname = settings.SETTINGS_MODULE.split('.')[0]
             try:
                 url = reverse(projectname + '.' + viewname, urlconf=urlconf, 
                               args=args, kwargs=kwargs)
             except NoReverseMatch:
                 if fail:
-                    raise
+                    raise ex
                 else:
                     return ''
 
