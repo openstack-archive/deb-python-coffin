@@ -13,8 +13,7 @@ __all__ = ('render_to_string', 'render_to_response', 'render')
 from coffin.template.loader import render_to_string
 
 
-def render_to_response(template_name, dictionary=None, context_instance=None,
-                       mimetype=None):
+def render_to_response(template_name, dictionary=None, context_instance=None, **kwargs):
     """
     :param template_name: Filename of the template to get or a sequence of
         filenames to try, in order.
@@ -22,7 +21,7 @@ def render_to_response(template_name, dictionary=None, context_instance=None,
     :returns: A response object with the evaluated template as a payload.
     """
     rendered = render_to_string(template_name, dictionary, context_instance)
-    return HttpResponse(rendered, mimetype=mimetype)
+    return HttpResponse(rendered, **kwargs)
 
 
 def render(request, *args, **kwargs):
