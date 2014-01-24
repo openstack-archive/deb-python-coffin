@@ -85,7 +85,7 @@ line::
 
 in your ``urls.py`` (it should be there by default), with::
 
-    from coffin.conf.urls.defaults import *
+    from coffin.conf.urls import *
 
 
 Custom filters and extensions
