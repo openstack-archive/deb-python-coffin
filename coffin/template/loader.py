@@ -4,7 +4,7 @@ The module provides a generic way to load templates from an arbitrary
 backend storage (e.g. filesystem, database).
 """
 
-from coffin.template import Template as CoffinTemplate
+from django.template import TemplateDoesNotExist
 from jinja2 import TemplateNotFound
 
 
@@ -21,7 +21,10 @@ def get_template(template_name):
     # Jinja will handle this for us, and env also initializes
     # the loader backends the first time it is called.
     from coffin.common import env
-    return env.get_template(template_name)
+    try:
+        return env.get_template(template_name)
+    except TemplateNotFound:
+        raise TemplateDoesNotExist(template_name)
 
 
 def get_template_from_string(source):
@@ -60,7 +63,7 @@ def select_template(template_name_list):
     for template_name in template_name_list:
         try:
             return get_template(template_name)
-        except TemplateNotFound:
+        except TemplateDoesNotExist:
             continue
     # If we get here, none of the templates could be loaded
-    raise TemplateNotFound(', '.join(template_name_list))
+    raise TemplateDoesNotExist(', '.join(template_name_list))
