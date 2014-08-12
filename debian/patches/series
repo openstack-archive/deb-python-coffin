@@ -1,1 +1,2 @@
-fix-tests-with-django-1.7.patch
+#fix-tests-with-django-1.7.patch
+python3-fix1.patch
