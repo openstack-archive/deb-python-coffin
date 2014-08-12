@@ -6,7 +6,16 @@ Uploaders: Julien Danjou <acid@debian.org>,
            Thomas Goirand <zigo@debian.org>,
            Mehdi Abaakouk <sileht@sileht.net>,
            Gonéri Le Bouder <goneri@debian.org>
-Build-Depends: debhelper (>= 9), python-setuptools, python-all (>= 2.6.6-3~), python3-setuptools, python3-all, python-jinja2, python-nose, python-six, python3-six
+Build-Depends: debhelper (>= 9),
+               python-all (>= 2.6.6-3~),
+               python-jinja2,
+               python-nose,
+               python-setuptools,
+               python-six,
+               python3-all,
+               python3-setuptools,
+               python3-six,
+               python-sphinx
 Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=openstack/python-coffin.git
 Vcs-Git: git://anonscm.debian.org/openstack/python-coffin.git
@@ -15,7 +24,7 @@ Homepage: http://github.com/coffin/coffin
 Package: python-coffin
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: python-six, ${python:Depends}, ${misc:Depends}
+Depends: python-six, ${misc:Depends}, ${python:Depends}
 Description: Jinja2 adapter for Django - Python 2.x
  Coffin is a Jinja2 adapter for Django. Coffin currently makes the following
  Django tags available in Jinja:
@@ -47,7 +56,7 @@ Description: Jinja2 adapter for Django - Python 2.x
 Package: python3-coffin
 Architecture: all
 Pre-Depends: dpkg (>= 1.15.6~)
-Depends: python3-six, ${python3:Depends}, ${misc:Depends}
+Depends: python3-six, ${misc:Depends}, ${python3:Depends}
 Description: Jinja2 adapter for Django - Python 3.x
  Coffin is a Jinja2 adapter for Django. Coffin currently makes the following
  Django tags available in Jinja:
@@ -86,4 +95,3 @@ Description: Jinja2 adapter for Django - doc
  - REPLACE ME -
  .
   This package contains the documentation.
-
