@@ -38,5 +38,5 @@ Last-Update: <YYYY-MM-DD>
 +from templatelibs_app import models
 +
 +os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.res.apps.settings")
-+django.setup()
-+
++if hasattr(django, 'setup'):
++    django.setup()
