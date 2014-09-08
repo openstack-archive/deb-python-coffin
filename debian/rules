@@ -18,6 +18,7 @@ override_dh_install:
 		python$$pyvers setup.py install --install-layout=deb \
 			--root $(CURDIR)/debian/python3-coffin; \
 	done
+	rm -rf $(CURDIR)/debian/python*-coffin/usr/lib/python*/dist-packages/tests
 
 #override_dh_auto_test:
 #ifeq (,$(findstring nocheck, $(DEB_BUILD_OPTIONS)))
