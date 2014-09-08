@@ -1,5 +1,5 @@
 python-coffin (0.3.8-1) unstable; urgency=medium
 
-  * Initial release. (Closes: #XXXXXX)
+  * Initial release. (Closes: #760866)
 
  -- Thomas Goirand <zigo@debian.org>  Tue, 12 Aug 2014 14:45:28 +0800
