@@ -4,6 +4,7 @@ from django.template import (
     import_library,
 )
 from jinja2 import Template as _Jinja2Template
+from jinja2.runtime import Context as _Jinja2Context
 
 # Merge with ``django.template``.
 from django.template import __all__
@@ -45,14 +46,17 @@ class Template(_Jinja2Template):
         here between implementing Django's interface while still supporting
         Jinja's own call syntax as well.
         """
-        if context is None:
-            context = {}
-        else:
-            context = dict_from_django_context(context)
-        assert isinstance(context, dict)  # Required for **-operator.
+        dict_ = {}
+
+        if isinstance(context, DjangoContext):
+            dict_ = dict_from_django_context(context)
+
+        if isinstance(context, _Jinja2Context):
+            dict_ = context.get_all()
+
         # It'd be nice to move this only into the test env
-        signals.template_rendered.send(sender=self, template=self, context=Context(context))
-        return super(Template, self).render(**context)
+        signals.template_rendered.send(sender=self, template=self, context=DjangoContext(dict_))
+        return super(Template, self).render(**dict_)
 
     @property
     def origin(self):
@@ -62,18 +66,15 @@ class Template(_Jinja2Template):
 def dict_from_django_context(context):
     """Flattens a Django :class:`django.template.context.Context` object.
     """
-    if not isinstance(context, DjangoContext):
-        return context
-    else:
-        dict_ = {}
-        # Jinja2 internally converts the context instance to a dictionary, thus
-        # we need to store the current_app attribute as a key/value pair.
-        dict_['_current_app'] = getattr(context, 'current_app', None)
+    dict_ = {}
+    # Jinja2 internally converts the context instance to a dictionary, thus
+    # we need to store the current_app attribute as a key/value pair.
+    dict_['_current_app'] = getattr(context, 'current_app', None)
 
-        # Newest dicts are up front, so update from oldest to newest.
-        for subcontext in reversed(list(context)):
-            dict_.update(dict_from_django_context(subcontext))
-        return dict_
+    # Newest dicts are up front, so update from oldest to newest.
+    for subcontext in reversed(list(context)):
+        dict_.update(subcontext)
+    return dict_
 
 
 # libraries to load by default for a new environment
