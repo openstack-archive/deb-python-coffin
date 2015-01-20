@@ -48,6 +48,9 @@ class Template(_Jinja2Template):
         """
         dict_ = {}
 
+        if isinstance(context, dict):
+            dict_ = context
+
         if isinstance(context, DjangoContext):
             dict_ = dict_from_django_context(context)
 
