@@ -169,7 +169,7 @@ never will, requiring manual changes on your part:
   Replace it with Jinja's slice syntax: ``x[0:1]``.
 
 - Jinja2's ``default`` filter by itself only tests the variable for
-  **existance**. To match Django's behaviour, you need to pass ``True``
+  **existence**. To match Django's behaviour, you need to pass ``True``
   as the second argument, so that it will also provide the default
   value for things that are defined but evalute to ``False``
 
