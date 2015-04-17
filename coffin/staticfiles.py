@@ -1,9 +1,5 @@
-from coffin import template
 from django.contrib.staticfiles.storage import staticfiles_storage
-from coffin.templatetags.static import StaticExtension
-
-
-register = template.Library()
+from coffin.static import StaticExtension
 
 
 class StaticExtension(StaticExtension):
@@ -29,10 +25,3 @@ class StaticExtension(StaticExtension):
     def get_statc_url(cls, path):
         return super(StaticExtension, cls).get_statc_url(
             staticfiles_storage.url(path))
-
-
-register.tag(StaticExtension)
-
-
-def static(path):
-    return StaticExtension.get_static_url(path)
