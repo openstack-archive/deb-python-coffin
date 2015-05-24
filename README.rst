@@ -5,8 +5,7 @@ This used to be a full-featured standalone adapter. With Django adding
 support for other template backends, it's approach didn't make sense
 anymore. Please use ``django_jinja`` instead - you won't regret it:
 
-http://niwibe.github.io/django-jinja/
-
+https://github.com/niwinz/django-jinja
 
 This module now is a lean collection of some Django tags that are
 not included in django-jinja, namely:
