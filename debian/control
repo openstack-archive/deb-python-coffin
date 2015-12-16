@@ -84,36 +84,3 @@ Description: Jinja2 adapter for Django - Python 3.x
   * truncatewords_html
  .
  This package contains the Python 3.x module.
-
-Package: python-coffin-doc
-Section: doc
-Architecture: all
-Pre-Depends: dpkg (>= 1.15.6~)
-Depends: ${misc:Depends}, ${sphinxdoc:Depends}
-Description: Jinja2 adapter for Django - doc
- Coffin is a Jinja2 adapter for Django. Coffin currently makes the following
- Django tags available in Jinja:
-  * {% cache %} - has currently an incompatibility: The second argument (the
-    fragment name) needs to be specified with surrounding quotes if it is
-    supposed to be a literal string, according to Jinja2 syntax. It will
-    otherwise be considered an identifer and resolved as a variable.
-  * {% load %} - is actually a no-op in Coffin, since templatetag libraries are
-    always loaded. See also "Custom Filters and extensions".
-  * {% spaceless %}
-  * {% url %} - additionally, a view|url() filter is also available. Or use
-    view|url() for Django 1.5 style lookups by the value of view.
-  * {% with %}
-  * {% csrf_token %}
- .
- Django filters that are ported in Coffin:
-  * date
-  * floatformat
-  * pluralize (expects an optional second parameter rather than the comma
-    syntax)
-  * time
-  * timesince
-  * timeuntil
-  * truncatewords
-  * truncatewords_html
- .
-  This package contains the documentation.
