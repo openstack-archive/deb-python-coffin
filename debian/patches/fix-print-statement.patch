@@ -1,0 +1,25 @@
+Description: Fix print statement for Py3
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2015-12-16
+
+--- python-coffin-2.0.1.orig/tests/test_defaultags.py
++++ python-coffin-2.0.1/tests/test_defaultags.py
+@@ -70,14 +70,14 @@ def test_url():
+         ('{% url urls_app.views.index as url %}{{url}}', {}, '/url_test/'),
+         ('{% url inexistent as url %}{{ url }}', {}, ''),    # no exception
+     ):
+-        print template, '==', expected_result
++        print(template, '==', expected_result)
+         try:
+             actual_result = env.from_string(template).render(context)
+         except Exception, e:
+-            print '==> %s: (%s)' % (type(e), e)
++            print('==> %s: (%s)' % (type(e), e))
+             assert type(e) == expected_result
+         else:
+-            print '==> %s' % actual_result
++            print('==> %s' % actual_result)
+             assert actual_result == expected_result
+ 
+ 
