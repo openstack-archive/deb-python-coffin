@@ -3,13 +3,9 @@ try:
 except ImportError:     # Python 2
     from urlparse import urljoin
 
-from coffin.template import Library
 from jinja2.ext import Extension
 from jinja2 import nodes
 from django.utils.encoding import iri_to_uri
-
-
-register = Library()
 
 
 class PrefixExtension(Extension):
@@ -119,12 +115,3 @@ class StaticExtension(PrefixExtension):
     @classmethod
     def get_statc_url(cls, path):
         return urljoin(PrefixExtension.get_uri_setting("STATIC_URL"), path)
-
-
-register.tag(GetStaticPrefixExtension)
-register.tag(GetMediaPrefixExtension)
-register.tag(StaticExtension)
-
-
-def static(path):
-    return StaticExtension.get_static_url(path)

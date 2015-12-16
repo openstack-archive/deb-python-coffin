@@ -1,216 +1,292 @@
-import os
-import warnings
+﻿from jinja2 import nodes
+from jinja2.ext import Extension
+from jinja2.exceptions import TemplateSyntaxError
+from jinja2 import Markup
+from django.conf import settings
 
-from django import dispatch
-from jinja2 import Environment, loaders
-from jinja2 import defaults as jinja2_defaults
-from coffin.template import Library as CoffinLibrary
 
-__all__ = ('env',)
+class LoadExtension(Extension):
+    """The load-tag is a no-op in Coffin. Instead, all template libraries
+    are always loaded.
 
-env = None
+    Note: Supporting a functioning load-tag in Jinja is tough, though
+    theoretically possible. The trouble is activating new extensions while
+    parsing is ongoing. The ``Parser.extensions`` dict of the current
+    parser instance needs to be modified, but apparently the only way to
+    get access would be by hacking the stack.
+    """
+    tags = set(['load'])
 
-_JINJA_I18N_EXTENSION_NAME = 'jinja2.ext.i18n'
+    def parse(self, parser):
+        while not parser.stream.current.type == 'block_end':
+            parser.stream.next()
+        return []
 
-class CoffinEnvironment(Environment):
-    def __init__(self, filters={}, globals={}, tests={}, loader=None, extensions=[], **kwargs):
-        if not loader:
-            loader = loaders.ChoiceLoader(self._get_loaders())
-        all_ext = self._get_all_extensions()
 
-        extensions.extend(all_ext['extensions'])
-        super(CoffinEnvironment, self).__init__(
-            extensions=extensions,
-            loader=loader,
-            **kwargs
-        )
-        # Note: all_ext already includes Jinja2's own builtins (with
-        # the proper priority), so we want to assign to these attributes.
-        self.filters = all_ext['filters'].copy()
-        self.filters.update(filters)
-        self.globals.update(all_ext['globals'])
-        self.globals.update(globals)
-        self.tests = all_ext['tests'].copy()
-        self.tests.update(tests)
-        for key, value in all_ext['attrs'].items():
-            setattr(self, key, value)
+"""class AutoescapeExtension(Extension):
+    ""#"
+    Template to output works in three phases in Jinja2: parsing,
+    generation (compilation, AST-traversal), and rendering (execution).
 
-        from coffin.template import Template as CoffinTemplate
-        self.template_class = CoffinTemplate
+    Unfortunatly, the environment ``autoescape`` option comes into effect
+    during traversal, the part where we happen to have basically no control
+    over as an extension. It determines whether output is wrapped in
+    ``escape()`` calls.
 
-    def _get_loaders(self):
-        """Tries to translate each template loader given in the Django settings
-        (:mod:`django.settings`) to a similarly-behaving Jinja loader.
-        Warns if a similar loader cannot be found.
-        Allows for Jinja2 loader instances to be placed in the template loader
-        settings.
-        """
-        loaders = []
+    Solutions that could possibly work:
 
-        from coffin.template.loaders import jinja_loader_from_django_loader
-        from jinja2.loaders import BaseLoader as JinjaLoader
+        * This extension could preprocess it's childnodes and wrap
+          everything output related inside the appropriate
+          ``Markup()`` or escape() call.
 
-        from django.conf import settings
-        _loaders = getattr(settings, 'JINJA2_TEMPLATE_LOADERS', settings.TEMPLATE_LOADERS)
-        for loader in _loaders:
-            if isinstance(loader, JinjaLoader):
-                loaders.append(loader)
+        * We could use the ``preprocess`` hook to insert the
+          appropriate ``|safe`` and ``|escape`` filters on a
+          string-basis. This is very unlikely to work well.
+
+    There's also the issue of inheritance and just generally the nesting
+    of autoescape-tags to consider.
+
+    Other things of note:
+
+        * We can access ``parser.environment``, but that would only
+          affect the **parsing** of our child nodes.
+
+        * In the commented-out code below we are trying to affect the
+          autoescape setting during rendering. As noted, this could be
+          necessary for rare border cases where custom extension use
+          the autoescape attribute.
+
+    Both the above things would break Environment thread-safety though!
+
+    Overall, it's not looking to good for this extension.
+    ""#"
+
+    tags = ['autoescape']
+
+    def parse(self, parser):
+        lineno = parser.stream.next().lineno
+
+        old_autoescape = parser.environment.autoescape
+        parser.environment.autoescape = True
+        try:
+            body = parser.parse_statements(
+                ['name:endautoescape'], drop_needle=True)
+        finally:
+            parser.environment.autoescape = old_autoescape
+
+        # Not sure yet if the code below is necessary - it changes
+        # environment.autoescape during template rendering. If for example
+        # a CallBlock function accesses ``environment.autoescape``, it
+        # presumably is.
+        # This also should use try-finally though, which Jinja's API
+        # doesn't support either. We could fake that as well by using
+        # InternalNames that output the necessary indentation and keywords,
+        # but at this point it starts to get really messy.
+        #
+        # TODO: Actually, there's ``nodes.EnvironmentAttribute``.
+        #ae_setting = object.__new__(nodes.InternalName)
+        #nodes.Node.__init__(ae_setting, 'environment.autoescape',
+            lineno=lineno)
+        #temp = parser.free_identifier()
+        #body.insert(0, nodes.Assign(temp, ae_setting))
+        #body.insert(1, nodes.Assign(ae_setting, nodes.Const(True)))
+        #body.insert(len(body), nodes.Assign(ae_setting, temp))
+        return body
+"""
+
+
+class URLExtension(Extension):
+    """Returns an absolute URL matching given view with its parameters.
+
+    This is a way to define links that aren't tied to a particular URL
+    configuration::
+
+        {% url path.to.some_view arg1,arg2,name1=value1 %}
+
+    Known differences to Django's url-Tag:
+
+        - In Django, the view name may contain any non-space character.
+          Since Jinja's lexer does not identify whitespace to us, only
+          characters that make up valid identifers, plus dots and hyphens
+          are allowed. Note that identifers in Jinja 2 may not contain
+          non-ascii characters.
+
+          As an alternative, you may specifify the view as a string,
+          which bypasses all these restrictions. It further allows you
+          to apply filters:
+
+            {% url "меткаda.some-view"|afilter %}
+    """
+
+    tags = set(['url'])
+
+    def parse(self, parser):
+        stream = parser.stream
+
+        tag = stream.next()
+
+        # get view name
+        if stream.current.test('string'):
+            # Need to work around Jinja2 syntax here. Jinja by default acts
+            # like Python and concats subsequent strings. In this case
+            # though, we want {% url "app.views.post" "1" %} to be treated
+            # as view + argument, while still supporting
+            # {% url "app.views.post"|filter %}. Essentially, what we do is
+            # rather than let ``parser.parse_primary()`` deal with a "string"
+            # token, we do so ourselves, and let parse_expression() handle all
+            # other cases.
+            if stream.look().test('string'):
+                token = stream.next()
+                viewname = nodes.Const(token.value, lineno=token.lineno)
             else:
-                loader_name = args = None
-                if isinstance(loader, basestring):
-                    loader_name = loader
-                    args = []
-                elif isinstance(loader, (tuple, list)):
-                    loader_name = loader[0]
-                    args = loader[1]
+                viewname = parser.parse_expression()
+        else:
+            # parse valid tokens and manually build a string from them
+            bits = []
+            name_allowed = True
+            while True:
+                if stream.current.test_any('dot', 'sub', 'colon'):
+                    bits.append(stream.next())
+                    name_allowed = True
+                elif stream.current.test('name') and name_allowed:
+                    bits.append(stream.next())
+                    name_allowed = False
+                else:
+                    break
+            viewname = nodes.Const("".join([b.value for b in bits]))
+            if not bits:
+                raise TemplateSyntaxError("'%s' requires path to view" %
+                    tag.value, tag.lineno)
 
-                if loader_name:
-                    loader_obj = jinja_loader_from_django_loader(loader_name, args)
-                    if loader_obj:
-                        loaders.append(loader_obj)
-                        continue
+        # get arguments
+        args = []
+        kwargs = []
+        while not stream.current.test_any('block_end', 'name:as'):
+            if args or kwargs:
+                stream.expect('comma')
+            if stream.current.test('name') and stream.look().test('assign'):
+                key = nodes.Const(stream.next().value)
+                stream.skip()
+                value = parser.parse_expression()
+                kwargs.append(nodes.Pair(key, value, lineno=key.lineno))
+            else:
+                args.append(parser.parse_expression())
 
-                warnings.warn('Cannot translate loader: %s' % loader)
-        return loaders
+        def make_call_node(*kw):
+            return self.call_method('_reverse', args=[
+                viewname,
+                nodes.List(args),
+                nodes.Dict(kwargs),
+                nodes.Name('_current_app', 'load'),
+            ], kwargs=kw)
 
-    def _get_templatelibs(self):
-        """Return an iterable of template ``Library`` instances.
+        # if an as-clause is specified, write the result to context...
+        if stream.next_if('name:as'):
+            var = nodes.Name(stream.expect('name').value, 'store')
+            call_node = make_call_node(nodes.Keyword('fail',
+                nodes.Const(False)))
+            return nodes.Assign(var, call_node)
+        # ...otherwise print it out.
+        else:
+            return nodes.Output([make_call_node()]).set_lineno(tag.lineno)
 
-        Since we cannot support the {% load %} tag in Jinja, we have to
-        register all libraries globally.
-        """
-        from django.conf import settings
-        from django.template import (
-            get_library, import_library, InvalidTemplateLibrary)
+    @classmethod
+    def _reverse(self, viewname, args, kwargs, current_app=None, fail=True):
+        from django.core.urlresolvers import reverse, NoReverseMatch
 
-        libs = []
-        for app in settings.INSTALLED_APPS:
-            ns = app + '.templatetags'
+        # Try to look up the URL twice: once given the view name,
+        # and again relative to what we guess is the "main" app.
+        url = ''
+        urlconf=kwargs.pop('urlconf', None)
+        try:
+            url = reverse(viewname, urlconf=urlconf, args=args, kwargs=kwargs,
+                current_app=current_app)
+        except NoReverseMatch as ex:
+            projectname = settings.SETTINGS_MODULE.split('.')[0]
             try:
-                path = __import__(ns, {}, {}, ['__file__']).__file__
-                path = os.path.dirname(path)  # we now have the templatetags/ directory
-            except ImportError:
-                pass
-            else:
-                for filename in os.listdir(path):
-                    if filename == '__init__.py' or filename.startswith('.'):
-                        continue
+                url = reverse(projectname + '.' + viewname, urlconf=urlconf, 
+                              args=args, kwargs=kwargs)
+            except NoReverseMatch:
+                if fail:
+                    raise ex
+                else:
+                    return ''
 
-                    if filename.endswith('.py'):
-                        try:
-                            module = "%s.%s" % (ns, os.path.splitext(filename)[0])
-                            l = import_library(module)
-                            libs.append(l)
+        return url
 
-                        except InvalidTemplateLibrary:
-                            pass
 
-        # In addition to loading application libraries, support a custom list
-        for libname in getattr(settings, 'JINJA2_DJANGO_TEMPLATETAG_LIBRARIES', ()):
-            libs.append(get_library(libname))
+class WithExtension(Extension):
+    """Adds a value to the context (inside this block) for caching and
+    easy access, just like the Django-version does.
 
-        return libs
+    For example::
 
-    def _get_all_extensions(self):
-        from django.conf import settings
-        from django.template import builtins as django_builtins
-        from coffin.template import builtins as coffin_builtins
-        from django.core.urlresolvers import get_callable
+        {% with person.some_sql_method as total %}
+            {{ total }} object{{ total|pluralize }}
+        {% endwith %}
 
-        # Note that for extensions, the order in which we load the libraries
-        # is not maintained (https://github.com/mitsuhiko/jinja2/issues#issue/3).
-        # Extensions support priorities, which should be used instead.
-        extensions, filters, globals, tests, attrs = [], {}, {}, {}, {}
-        def _load_lib(lib):
-            if not isinstance(lib, CoffinLibrary):
-                # If this is only a standard Django library,
-                # convert it. This will ensure that Django
-                # filters in that library are converted and
-                # made available in Jinja.
-                lib = CoffinLibrary.from_django(lib)
-            extensions.extend(getattr(lib, 'jinja2_extensions', []))
-            filters.update(getattr(lib, 'jinja2_filters', {}))
-            globals.update(getattr(lib, 'jinja2_globals', {}))
-            tests.update(getattr(lib, 'jinja2_tests', {}))
-            attrs.update(getattr(lib, 'jinja2_environment_attrs', {}))
-
-        # Start with Django's builtins; this give's us all of Django's
-        # filters courtasy of our interop layer.
-        for lib in django_builtins:
-            _load_lib(lib)
-
-        # The stuff Jinja2 comes with by default should override Django.
-        filters.update(jinja2_defaults.DEFAULT_FILTERS)
-        tests.update(jinja2_defaults.DEFAULT_TESTS)
-        globals.update(jinja2_defaults.DEFAULT_NAMESPACE)
-
-        # Our own set of builtins are next, overwriting Jinja2's.
-        for lib in coffin_builtins:
-            _load_lib(lib)
-
-        # Optionally, include the i18n extension.
-        if settings.USE_I18N:
-            extensions.append(_JINJA_I18N_EXTENSION_NAME)
-
-        # Next, add the globally defined extensions
-        extensions.extend(list(getattr(settings, 'JINJA2_EXTENSIONS', [])))
-        def from_setting(setting, values_must_be_callable = False):
-            retval = {}
-            setting = getattr(settings, setting, {})
-            if isinstance(setting, dict):
-                for key, value in setting.iteritems():
-                    if values_must_be_callable and not callable(value):
-                        value = get_callable(value)
-                    retval[key] = value
-            else:
-                for value in setting:
-                    if values_must_be_callable and not callable(value):
-                        value = get_callable(value)
-                    retval[value.__name__] = value
-            return retval
-
-        tests.update(from_setting('JINJA2_TESTS', True))
-        filters.update(from_setting('JINJA2_FILTERS', True))
-        globals.update(from_setting('JINJA2_GLOBALS'))
-
-        # Finally, add extensions defined in application's templatetag libraries
-        for lib in self._get_templatelibs():
-            _load_lib(lib)
-
-        return dict(
-            extensions=extensions,
-            filters=filters,
-            globals=globals,
-            tests=tests,
-            attrs=attrs,
-        )
-
-def get_env():
+    TODO: The new Scope node introduced in Jinja2 6334c1eade73 (the 2.2
+    dev version) would help here, but we don't want to rely on that yet.
+    See also:
+        http://dev.pocoo.org/projects/jinja/browser/tests/test_ext.py
+        http://dev.pocoo.org/projects/jinja/ticket/331
+        http://dev.pocoo.org/projects/jinja/ticket/329
     """
-    :return: A Jinja2 environment singleton.
+
+    tags = set(['with'])
+
+    def parse(self, parser):
+        lineno = parser.stream.next().lineno
+        value = parser.parse_expression()
+        parser.stream.expect('name:as')
+        name = parser.stream.expect('name')
+        body = parser.parse_statements(['name:endwith'], drop_needle=True)
+        # Use a local variable instead of a macro argument to alias
+        # the expression.  This allows us to nest "with" statements.
+        body.insert(0, nodes.Assign(nodes.Name(name.value, 'store'), value))
+        return nodes.CallBlock(
+                self.call_method('_render_block'), [], [], body).\
+                    set_lineno(lineno)
+
+    def _render_block(self, caller=None):
+        return caller()
+
+
+class SpacelessExtension(Extension):
+    """Removes whitespace between HTML tags, including tab and
+    newline characters.
+
+    Works exactly like Django's own tag.
     """
-    from django.conf import settings
 
-    kwargs = {
-        'autoescape': True,
-    }
-    kwargs.update(getattr(settings, 'JINJA2_ENVIRONMENT_OPTIONS', {}))
+    tags = set(['spaceless'])
 
-    result = CoffinEnvironment(**kwargs)
-    # Hook Jinja's i18n extension up to Django's translation backend
-    # if i18n is enabled; note that we differ here from Django, in that
-    # Django always has it's i18n functionality available (that is, if
-    # enabled in a template via {% load %}), but uses a null backend if
-    # the USE_I18N setting is disabled. Jinja2 provides something similar
-    # (install_null_translations), but instead we are currently not
-    # enabling the extension at all when USE_I18N=False.
-    # While this is basically an incompatibility with Django, currently
-    # the i18n tags work completely differently anyway, so for now, I
-    # don't think it matters.
-    if settings.USE_I18N:
-        from django.utils import translation
-        result.install_gettext_translations(translation)
+    def parse(self, parser):
+        lineno = parser.stream.next().lineno
+        body = parser.parse_statements(['name:endspaceless'], drop_needle=True)
+        return nodes.CallBlock(
+            self.call_method('_strip_spaces', [], [], None, None),
+            [], [], body,
+        ).set_lineno(lineno)
 
-    return result
+    def _strip_spaces(self, caller=None):
+        from django.utils.html import strip_spaces_between_tags
+        return strip_spaces_between_tags(caller().strip())
 
-env = get_env()
+# nicer import names
+load = LoadExtension
+url = URLExtension
+with_ = WithExtension
+spaceless = SpacelessExtension
+
+
+# # I wish adding extensions in this way was supported
+# try:
+#     from django_jinja import library
+# except ImportError:
+#     pass
+# else:
+#     library.tag(load)
+#     library.tag(url)
+#     library.tag(with_)
+#     library.tag(spaceless)
