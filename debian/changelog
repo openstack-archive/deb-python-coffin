@@ -2,6 +2,7 @@ python-coffin (2.0.1-1) unstable; urgency=medium
 
   * New upstream release.
   * Removed fix-tests-with-django-1.7.patch.
+  * Removed python3-compat.patch.
 
  -- Thomas Goirand <zigo@debian.org>  Wed, 16 Dec 2015 09:55:03 +0000
 
