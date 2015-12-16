@@ -5,6 +5,7 @@ python-coffin (2.0.1-1) unstable; urgency=medium
   * Removed python3-compat.patch.
   * Removed the doc package, as it's gone from upstream.
   * Standards-Version is now 3.9.6.
+  * Fixed watch file to use the redirector.
 
  -- Thomas Goirand <zigo@debian.org>  Wed, 16 Dec 2015 09:55:03 +0000
 
