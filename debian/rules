@@ -9,12 +9,12 @@ UPSTREAM_GIT = git://github.com/coffin/coffin.git
 %:
 	dh $@ --buildsystem=python_distutils --with python2,python3
 
-override_dh_install:
-	set -e && for pyvers in $(PYTHONS); do \
+override_dh_auto_install:
+	set -e ; for pyvers in $(PYTHONS); do \
 		python$$pyvers setup.py install --install-layout=deb \
 			--root $(CURDIR)/debian/python-coffin; \
 	done
-	set -e && for pyvers in $(PYTHON3S); do \
+	set -e ; for pyvers in $(PYTHON3S); do \
 		python$$pyvers setup.py install --install-layout=deb \
 			--root $(CURDIR)/debian/python3-coffin; \
 	done
@@ -22,10 +22,10 @@ override_dh_install:
 
 #override_dh_auto_test:
 #ifeq (,$(findstring nocheck, $(DEB_BUILD_OPTIONS)))
-#	set -e && for pyvers in $(PYTHONS); do \
+#	set -e ; for pyvers in $(PYTHONS); do \
 #		PYTHON=python$$pyvers nosetests ; \
 #	done
-#	set -e && for pyvers in $(PYTHON3S); do \
+#	set -e ; for pyvers in $(PYTHON3S); do \
 #		PYTHON=python$$pyvers nosetests3 ; \
 #	done
 #endif
