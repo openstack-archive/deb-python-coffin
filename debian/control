@@ -17,7 +17,7 @@ Build-Depends-Indep: python-jinja2,
 Standards-Version: 3.9.6
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=openstack/python-coffin.git
 Vcs-Git: git://anonscm.debian.org/openstack/python-coffin.git
-Homepage: http://github.com/coffin/coffin
+Homepage: https://github.com/coffin/coffin
 
 Package: python-coffin
 Architecture: all
