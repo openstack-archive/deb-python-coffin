@@ -30,7 +30,7 @@ Description: Jinja2 adapter for Django - Python 2.x
   * {% cache %} - has currently an incompatibility: The second argument (the
     fragment name) needs to be specified with surrounding quotes if it is
     supposed to be a literal string, according to Jinja2 syntax. It will
-    otherwise be considered an identifer and resolved as a variable.
+    otherwise be considered an identifier and resolved as a variable.
   * {% load %} - is actually a no-op in Coffin, since templatetag libraries are
     always loaded. See also "Custom Filters and extensions".
   * {% spaceless %}
@@ -63,7 +63,7 @@ Description: Jinja2 adapter for Django - Python 3.x
   * {% cache %} - has currently an incompatibility: The second argument (the
     fragment name) needs to be specified with surrounding quotes if it is
     supposed to be a literal string, according to Jinja2 syntax. It will
-    otherwise be considered an identifer and resolved as a variable.
+    otherwise be considered an identifier and resolved as a variable.
   * {% load %} - is actually a no-op in Coffin, since templatetag libraries are
     always loaded. See also "Custom Filters and extensions".
   * {% spaceless %}
