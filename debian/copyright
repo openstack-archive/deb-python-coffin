@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Coffin
-Source: http://github.com/coffin/coffin
+Source: https://github.com/coffin/coffin
 
 Files: debian/*
 Copyright: (c) 2014, Thomas Goirand <zigo@debian.org>
