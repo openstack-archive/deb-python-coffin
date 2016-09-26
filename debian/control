@@ -15,8 +15,8 @@ Build-Depends-Indep: python-jinja2,
                      python3-nose,
                      python3-six,
 Standards-Version: 3.9.6
-Vcs-Browser: https://anonscm.debian.org/cgit/openstack/python-coffin.git/
-Vcs-Git: https://anonscm.debian.org/git/openstack/python-coffin.git
+Vcs-Browser: https://git.openstack.org/cgit/openstack/deb-python-coffin?h=debian%2Fnewton
+Vcs-Git: https://git.openstack.org/openstack/deb-python-coffin -b debian/newton
 Homepage: https://github.com/coffin/coffin
 
 Package: python-coffin
